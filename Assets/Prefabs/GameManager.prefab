@@ -1,0 +1,127 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &4854169028328746335
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 3548674297051426474}
+  - component: {fileID: 2013896976206568597}
+  - component: {fileID: 8291244981463556567}
+  - component: {fileID: 3781446500804306336}
+  - component: {fileID: 6895171124018819939}
+  m_Layer: 0
+  m_Name: GameManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &3548674297051426474
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4854169028328746335}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -0.56229, y: 0.698, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &2013896976206568597
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4854169028328746335}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2d110d0bfe571bc47a3b3da4e040278e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::VerbManager
+  currentVerb: 0
+  lookAtHighlight: {fileID: 0}
+  pickUpHighlight: {fileID: 0}
+  useItemHighlight: {fileID: 0}
+  talkToHighlight: {fileID: 0}
+  interactHighlight: {fileID: 0}
+  useZoeyHighlight: {fileID: 0}
+--- !u!114 &8291244981463556567
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4854169028328746335}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a99f24e3dc4664f4599df41f92c919c1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::InventoryManager
+  inventoryPanel: {fileID: 0}
+  inventoryHighlight: {fileID: 0}
+  slots:
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  itemSprites: []
+  itemNames: []
+  itemColors: []
+  isOpen: 0
+--- !u!114 &3781446500804306336
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4854169028328746335}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 89e59224293f56f47aa14ba779cc68b4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::SaveManager
+  notificationText: {fileID: 0}
+--- !u!114 &6895171124018819939
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4854169028328746335}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c469da73d6cf3ce418a459f7e5c8b2ea, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CursorManager
+  cursorDefault: {fileID: 2800000, guid: ebe73ca9363db456bacf42c025bb4847, type: 3}
+  cursorLookAt: {fileID: 2800000, guid: 75f5f34dc1b5347e0b8351032682f224, type: 3}
+  cursorPickUp: {fileID: 2800000, guid: 311925a002f4447b3a28927169b83ea6, type: 3}
+  cursorUseItem: {fileID: 2800000, guid: b670ab75dde984907b8570040daa08c5, type: 3}
+  cursorTalkTo: {fileID: 2800000, guid: 0d267bc78a0864eb48358689b29ed20a, type: 3}
+  cursorInteract: {fileID: 2800000, guid: bd3cb4af8406d4436a2ae8c2aafe1f8d, type: 3}
+  cursorUseZoey: {fileID: 2800000, guid: eed45a33cd08446c8b88325cf82fc52f, type: 3}
+  controllerCursorImage: {fileID: 0}
+  spriteDefault: {fileID: -2413806693520163455, guid: a86470a33a6bf42c4b3595704624658b, type: 3}
+  spriteLookAt: {fileID: 7482667652216324306, guid: 75f5f34dc1b5347e0b8351032682f224, type: 3}
+  spritePickUp: {fileID: 7482667652216324306, guid: 48e93eef0688c4a259cb0eddcd8661f7, type: 3}
+  spriteUseItem: {fileID: 2747690628134850419, guid: a9716c16a44a94eed9b5c90fbf4d9bdd, type: 3}
+  spriteTalkTo: {fileID: 3625043607559282579, guid: 0d267bc78a0864eb48358689b29ed20a, type: 3}
+  spriteInteract: {fileID: -9095717837082945937, guid: bd3cb4af8406d4436a2ae8c2aafe1f8d, type: 3}
+  spriteUseZoey: {fileID: -2135585597343286014, guid: 4b2a04fdbe0ef4d8da8f90eaca817cd1, type: 3}
