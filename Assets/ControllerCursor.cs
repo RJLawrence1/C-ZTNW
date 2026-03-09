@@ -50,6 +50,7 @@ public class ControllerCursor : MonoBehaviour
 
     void Update()
     {
+        Debug.Log("isInDialogue: " + DialogueManager.isInDialogue + " | gamepad: " + (Gamepad.current != null));
         if (DialogueManager.isInDialogue) return;
         cursorImage.color = PhoneBoothUI.isInPhoneBooth ? Color.black : Color.white;
 

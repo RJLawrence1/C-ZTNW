@@ -37,6 +37,7 @@ public class ZoeyAI : MonoBehaviour
     {
         // Only paused when Curly is actively talking to Zoey (set by ZoeyInteractable)
         if (isPaused) return;
+        if (SettingsMenu.isOpen) return;
         if (SceneDoor.movementLocked) return;
 
         HandleMovement();

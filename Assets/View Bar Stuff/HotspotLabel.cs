@@ -31,7 +31,7 @@ public class HotspotLabel : MonoBehaviour
     {
         // Don't show hotspot labels while the phone booth UI is open
         if (PhoneBoothUI.isInPhoneBooth) return;
-
+        if (SettingsMenu.isOpen) return;
         if (DialogueLabel.curlyLabel != null && DialogueLabel.curlyLabel.IsDisplaying()) return;
         if (DialogueLabel.zoeyLabel != null && DialogueLabel.zoeyLabel.IsDisplaying()) return;
 

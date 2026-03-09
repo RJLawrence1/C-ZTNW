@@ -90,6 +90,7 @@ public class CurlyMovement : MonoBehaviour
 
     void Update()
     {
+        if (SettingsMenu.isOpen) return;
         if (InventoryManager.instance.isOpen) return;
         if (PhoneBoothUI.isInPhoneBooth) return;
         if (DialogueManager.isInDialogue) return;
