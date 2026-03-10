@@ -141,7 +141,7 @@ public class CurlyMovement : MonoBehaviour
                 int interactableLayer = LayerMask.GetMask("Interactable");
                 RaycastHit2D hit = Physics2D.Raycast(Camera.main.ScreenToWorldPoint(new Vector3(mousePos2D.x, mousePos2D.y, Camera.main.nearClipPlane)), Vector2.zero, Mathf.Infinity, interactableLayer);
 
-                if (hit.collider != null && (hit.collider.GetComponent<Interactable>() != null || hit.collider.GetComponent<ZoeyInteractable>() != null))
+                if (hit.collider != null && (hit.collider.GetComponent<Interactable>() != null || hit.collider.GetComponent<ZoeyInteractable>() != null || hit.collider.GetComponent<PhoneBooth>() != null))
                     return;
 
                 Vector3 mousePos = Camera.main.ScreenToWorldPoint(new Vector3(mousePos2D.x, mousePos2D.y, Camera.main.nearClipPlane));

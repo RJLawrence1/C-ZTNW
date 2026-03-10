@@ -320,8 +320,20 @@ public class PhoneBoothUI : MonoBehaviour
     IEnumerator TimeTravel(string era)
     {
         Hide();
-        Debug.Log("Time traveling to: " + era);
-        yield return null;
+        yield return new WaitForSeconds(0.5f); // Small delay so Hide() can finish cleanly
+
+        switch (era)
+        {
+            case "1957":
+                UnityEngine.SceneManagement.SceneManager.LoadScene("1957Test");
+                break;
+            case "1987":
+                UnityEngine.SceneManagement.SceneManager.LoadScene("1987Test");
+                break;
+            case "2017":
+                UnityEngine.SceneManagement.SceneManager.LoadScene("2017Test");
+                break;
+        }
     }
 
     IEnumerator BTTF1955()
