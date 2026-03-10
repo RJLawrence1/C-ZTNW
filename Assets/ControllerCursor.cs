@@ -14,8 +14,11 @@ public class ControllerCursor : MonoBehaviour
     private float hideTimer = 0f;
     private float hideTime = 2f;
 
-    // Cached references — avoids FindObjectOfType on every click
     private CurlyMovement curly;
+
+    // Input mode — switches automatically based on which device was used last
+    public static bool usingController = false;
+    private Vector2 lastMousePosition;
 
     void Awake()
     {
@@ -38,7 +41,6 @@ public class ControllerCursor : MonoBehaviour
         rectTransform.anchoredPosition = cursorPosition;
     }
 
-    // Returns true if either character is currently speaking a line
     private bool IsDialoguePlaying()
     {
         bool curlyTalking = DialogueLabel.curlyLabel != null && DialogueLabel.curlyLabel.IsDisplaying();
@@ -47,17 +49,56 @@ public class ControllerCursor : MonoBehaviour
     }
 
     private int selectedSlotIndex = 0;
+    private int controllerDragIndex = -1;   // Slot being "held" for combining
 
     void Update()
     {
-        Debug.Log("isInDialogue: " + DialogueManager.isInDialogue + " | gamepad: " + (Gamepad.current != null));
         if (DialogueManager.isInDialogue) return;
-        cursorImage.color = PhoneBoothUI.isInPhoneBooth ? Color.black : Color.white;
 
         var gamepad = Gamepad.current;
+
+        // Detect input mode switches
+        Vector2 mousePos = Mouse.current.position.ReadValue();
+        bool mouseMoved = Vector2.Distance(mousePos, lastMousePosition) > 2f;
+
+        if (mouseMoved)
+        {
+            usingController = false;
+            lastMousePosition = mousePos;
+            cursorImage.enabled = false;
+        }
+        else if (gamepad != null)
+        {
+            Vector2 rightStick = new Vector2(
+                gamepad.rightStick.x.ReadValue(),
+                gamepad.rightStick.y.ReadValue());
+
+            bool anyControllerInput = rightStick.magnitude > 0.1f
+                || gamepad.leftStick.ReadValue().magnitude > 0.1f
+                || gamepad.rightTrigger.isPressed
+                || gamepad.leftTrigger.isPressed
+                || gamepad.aButton.isPressed
+                || gamepad.bButton.isPressed
+                || gamepad.dpad.left.isPressed
+                || gamepad.dpad.right.isPressed;
+
+            if (anyControllerInput)
+                usingController = true;
+        }
+
+        // Hide hardware mouse cursor when using controller, show when using mouse
+        Cursor.visible = !usingController;
+
+        if (!usingController)
+        {
+            cursorImage.enabled = false;
+            return;
+        }
+
+        cursorImage.color = PhoneBoothUI.isInPhoneBooth ? Color.black : Color.white;
         if (gamepad == null) return;
 
-        // B button cancels item selection
+        // B button cancels item selection (world use)
         if (gamepad.bButton.wasPressedThisFrame && ItemCursor.hasSelectedItem)
         {
             ItemCursor.instance.ClearSelection();
@@ -66,15 +107,14 @@ public class ControllerCursor : MonoBehaviour
 
         float x = gamepad.rightStick.x.ReadValue();
         float y = gamepad.rightStick.y.ReadValue();
+        Vector2 rightStickMove = new Vector2(x, y);
 
-        Vector2 rightStick = new Vector2(x, y);
-
-        if (rightStick.magnitude > 0.01f)
+        if (rightStickMove.magnitude > 0.01f)
         {
             cursorImage.enabled = true;
             hideTimer = 0f;
 
-            cursorPosition += rightStick * cursorSpeed * Time.deltaTime;
+            cursorPosition += rightStickMove * cursorSpeed * Time.deltaTime;
 
             Vector2 halfScreen = new Vector2(Screen.width / 2f, Screen.height / 2f);
             cursorPosition.x = Mathf.Clamp(cursorPosition.x, -halfScreen.x, halfScreen.x);
@@ -92,14 +132,14 @@ public class ControllerCursor : MonoBehaviour
             }
         }
 
-        // If inventory is open, handle slot interaction and skip world clicks
+        // If inventory is open, hand off to inventory controller
         if (InventoryManager.instance.isOpen)
         {
             HandleInventoryController(gamepad);
             return;
         }
 
-        // Hotspot detection — skip when in phone booth or dialogue is playing
+        // Hotspot detection
         if (cursorImage.enabled && !PhoneBoothUI.isInPhoneBooth && !IsDialoguePlaying())
         {
             Vector2 worldPos = Camera.main.ScreenToWorldPoint(GetScreenPosition());
@@ -123,20 +163,41 @@ public class ControllerCursor : MonoBehaviour
 
         if (gamepad.rightTrigger.wasPressedThisFrame && cursorImage.enabled)
         {
-            // Don't allow clicks while a spoken line is playing
             if (IsDialoguePlaying()) return;
-
             SimulateClick(GetScreenPosition());
         }
+    }
+
+    // ── Inventory Controller ─────────────────────────────────────
+
+    // Returns which slot index the controller cursor is currently hovering over, or -1
+    int GetSlotUnderControllerCursor()
+    {
+        var inv = InventoryManager.instance;
+        Vector2 screenPos = GetScreenPosition();
+        for (int i = 0; i < inv.slots.Count; i++)
+        {
+            if (RectTransformUtility.RectangleContainsScreenPoint(
+                inv.slots[i].rectTransform, screenPos, null))
+                return i;
+        }
+        return -1;
+    }
+    bool IsCursorOverInventoryPanel()
+    {
+        var inv = InventoryManager.instance;
+        if (inv.inventoryPanel == null) return false;
+        RectTransform panelRect = inv.inventoryPanel.GetComponent<RectTransform>();
+        if (panelRect == null) return false;
+        return RectTransformUtility.RectangleContainsScreenPoint(panelRect, GetScreenPosition(), null);
     }
 
     void HandleInventoryController(Gamepad gamepad)
     {
         var inv = InventoryManager.instance;
         int itemCount = inv.itemNames.Count;
-        if (itemCount == 0) return;
 
-        // D-pad left/right navigates slots
+        // D-pad navigates slots
         if (gamepad.dpad.left.wasPressedThisFrame)
         {
             selectedSlotIndex = Mathf.Max(0, selectedSlotIndex - 1);
@@ -144,30 +205,90 @@ public class ControllerCursor : MonoBehaviour
         }
         else if (gamepad.dpad.right.wasPressedThisFrame)
         {
-            selectedSlotIndex = Mathf.Min(itemCount - 1, selectedSlotIndex + 1);
+            selectedSlotIndex = Mathf.Min(Mathf.Max(0, itemCount - 1), selectedSlotIndex + 1);
             HighlightSlot(selectedSlotIndex);
         }
 
-        // Right trigger or A button selects the highlighted slot
-        if (gamepad.rightTrigger.wasPressedThisFrame || gamepad.aButton.wasPressedThisFrame)
+        // Right trigger
+        if (gamepad.rightTrigger.wasPressedThisFrame)
+        {
+            int cursorSlot = GetSlotUnderControllerCursor();
+
+            if (controllerDragIndex < 0)
+            {
+                // First press — grab whatever slot the cursor is over
+                if (cursorSlot < 0 || cursorSlot >= itemCount) return;
+
+                controllerDragIndex = cursorSlot;
+                if (controllerDragIndex < inv.slots.Count)
+                {
+                    Color c = inv.slots[controllerDragIndex].color;
+                    inv.slots[controllerDragIndex].color = new Color(c.r, c.g, c.b, 0.4f);
+                }
+            }
+            else
+            {
+                // Second press
+                if (IsCursorOverInventoryPanel())
+                {
+                    // Over panel — combine with whatever slot cursor is on
+                    if (cursorSlot >= 0 && cursorSlot != controllerDragIndex && cursorSlot < itemCount)
+                        inv.TryCombineFromController(controllerDragIndex, cursorSlot);
+                }
+                else
+                {
+                    // Off panel — select for world use
+                    if (controllerDragIndex < itemCount)
+                    {
+                        if (VerbManager.instance != null)
+                            VerbManager.instance.SetVerb(VerbManager.Verb.UseItem);
+                        ItemCursor.instance.SelectItem(
+                            inv.itemNames[controllerDragIndex],
+                            inv.itemSprites[controllerDragIndex],
+                            inv.itemColors[controllerDragIndex]
+                        );
+                        inv.isOpen = false;
+                        inv.inventoryPanel.SetActive(false);
+                        inv.inventoryHighlight.color = Color.clear;
+                    }
+                }
+
+                controllerDragIndex = -1;
+                HighlightSlot(selectedSlotIndex);
+            }
+        }
+
+        // A button — select item for world use (only if not mid-combine)
+        if (gamepad.aButton.wasPressedThisFrame && controllerDragIndex < 0)
         {
             if (selectedSlotIndex < itemCount)
             {
+                if (VerbManager.instance != null)
+                    VerbManager.instance.SetVerb(VerbManager.Verb.UseItem);
                 ItemCursor.instance.SelectItem(
                     inv.itemNames[selectedSlotIndex],
                     inv.itemSprites[selectedSlotIndex],
                     inv.itemColors[selectedSlotIndex]
                 );
-                // Close inventory
                 inv.isOpen = false;
                 inv.inventoryPanel.SetActive(false);
                 inv.inventoryHighlight.color = Color.clear;
             }
         }
 
-        // B button closes inventory
+        // B button — cancel combine grab OR close inventory
         if (gamepad.bButton.wasPressedThisFrame)
-            inv.ToggleInventory();
+        {
+            if (controllerDragIndex >= 0)
+            {
+                controllerDragIndex = -1;
+                HighlightSlot(selectedSlotIndex);
+            }
+            else
+            {
+                inv.ToggleInventory();
+            }
+        }
     }
 
     void HighlightSlot(int index)
@@ -176,12 +297,13 @@ public class ControllerCursor : MonoBehaviour
         for (int i = 0; i < inv.slots.Count; i++)
         {
             Color c = inv.slots[i].color;
-            // Brighten selected slot, dim others
             inv.slots[i].color = (i == index && i < inv.itemNames.Count)
                 ? new Color(c.r, c.g, c.b, 1f)
                 : new Color(c.r, c.g, c.b, 0.5f);
         }
     }
+
+    public Vector2 GetScreenPositionPublic() => GetScreenPosition();
 
     Vector2 GetScreenPosition()
     {
@@ -193,7 +315,7 @@ public class ControllerCursor : MonoBehaviour
 
     void SimulateClick(Vector2 screenPosition)
     {
-        // Check UI first
+        // UI first
         if ((DialogueManager.instance != null && DialogueManager.instance.dialoguePanel.activeSelf)
             || PhoneBoothUI.isInPhoneBooth)
         {
@@ -205,16 +327,12 @@ public class ControllerCursor : MonoBehaviour
             foreach (RaycastResult result in results)
             {
                 Button button = result.gameObject.GetComponent<Button>();
-                if (button != null)
-                {
-                    button.onClick.Invoke();
-                    return;
-                }
+                if (button != null) { button.onClick.Invoke(); return; }
             }
             return;
         }
 
-        // Check world interactables
+        // World interactables
         Vector2 worldPos = Camera.main.ScreenToWorldPoint(screenPosition);
         int interactableLayer = LayerMask.GetMask("Interactable");
         RaycastHit2D hit = Physics2D.Raycast(worldPos, Vector2.zero, Mathf.Infinity, interactableLayer);
@@ -227,7 +345,6 @@ public class ControllerCursor : MonoBehaviour
 
             if (interactable != null)
             {
-                // If item is selected, use it on the interactable
                 if (ItemCursor.hasSelectedItem)
                 {
                     interactable.OnItemUsed(ItemCursor.selectedItemName);

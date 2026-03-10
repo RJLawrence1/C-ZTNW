@@ -7,6 +7,14 @@ public class Interactable : MonoBehaviour, IInteractable
 {
     public string itemName = "Test Item";
 
+    // Tracks all picked-up item names across scene transitions
+    public static System.Collections.Generic.HashSet<string> pickedUpItems
+        = new System.Collections.Generic.HashSet<string>();
+
+    // Registry of item name -> sprite, so inventory can look up sprites after scene loads
+    public static System.Collections.Generic.Dictionary<string, Sprite> spriteRegistry
+        = new System.Collections.Generic.Dictionary<string, Sprite>();
+
     [Header("Allowed Verbs")]
     public bool canLookAt = true;
     public bool canPickUp = false;
@@ -94,10 +102,22 @@ public class Interactable : MonoBehaviour, IInteractable
         "I'm going for a walk."
     };
 
+    void Awake()
+    {
+        // Register sprite early so InventoryManager.Start can find it
+        Sprite sprite = GetComponent<SpriteRenderer>() != null ? GetComponent<SpriteRenderer>().sprite : null;
+        if (sprite != null)
+            spriteRegistry[itemName] = sprite;
+    }
+
     void Start()
     {
         curly = FindObjectOfType<CurlyMovement>();
         zoey = FindObjectOfType<ZoeyAI>();
+
+        // If this item was already picked up in a previous scene, hide it immediately
+        if (pickedUpItems.Contains(itemName))
+            gameObject.SetActive(false);
     }
 
     void Update()
@@ -171,6 +191,8 @@ public class Interactable : MonoBehaviour, IInteractable
         Sprite sprite = GetComponent<SpriteRenderer>() != null ? GetComponent<SpriteRenderer>().sprite : null;
         Color color = GetComponent<SpriteRenderer>() != null ? GetComponent<SpriteRenderer>().color : Color.white;
         InventoryManager.instance.AddItem(itemName, sprite, color);
+        Debug.Log("InventoryData count after pickup: " + InventoryData.names.Count);
+        pickedUpItems.Add(itemName);
         gameObject.SetActive(false);
     }
 

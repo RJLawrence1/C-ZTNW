@@ -10,9 +10,10 @@ GameObject:
   m_Component:
   - component: {fileID: 3548674297051426474}
   - component: {fileID: 2013896976206568597}
-  - component: {fileID: 8291244981463556567}
   - component: {fileID: 3781446500804306336}
   - component: {fileID: 6895171124018819939}
+  - component: {fileID: 4334935626284836913}
+  - component: {fileID: 3527727656425185348}
   m_Layer: 0
   m_Name: GameManager
   m_TagString: Untagged
@@ -54,37 +55,6 @@ MonoBehaviour:
   talkToHighlight: {fileID: 0}
   interactHighlight: {fileID: 0}
   useZoeyHighlight: {fileID: 0}
---- !u!114 &8291244981463556567
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4854169028328746335}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a99f24e3dc4664f4599df41f92c919c1, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::InventoryManager
-  inventoryPanel: {fileID: 0}
-  inventoryHighlight: {fileID: 0}
-  slots:
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  itemSprites: []
-  itemNames: []
-  itemColors: []
-  isOpen: 0
 --- !u!114 &3781446500804306336
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -125,3 +95,48 @@ MonoBehaviour:
   spriteTalkTo: {fileID: 3625043607559282579, guid: 0d267bc78a0864eb48358689b29ed20a, type: 3}
   spriteInteract: {fileID: -9095717837082945937, guid: bd3cb4af8406d4436a2ae8c2aafe1f8d, type: 3}
   spriteUseZoey: {fileID: -2135585597343286014, guid: 4b2a04fdbe0ef4d8da8f90eaca817cd1, type: 3}
+--- !u!114 &4334935626284836913
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4854169028328746335}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a99f24e3dc4664f4599df41f92c919c1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::InventoryManager
+  inventoryPanel: {fileID: 0}
+  inventoryHighlight: {fileID: 0}
+  slots:
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  itemSprites: []
+  itemNames: []
+  itemColors: []
+  isOpen: 0
+--- !u!114 &3527727656425185348
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4854169028328746335}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6f040f9014d2c614bb7bedeaf0d71aed, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CombinationDatabase
+  combinations:
+  - {fileID: 11400000, guid: 04a825265cb8d2548a866a82942b68c8, type: 2}

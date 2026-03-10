@@ -22,8 +22,11 @@ public class ItemCursor : MonoBehaviour
     {
         if (!hasSelectedItem) return;
 
-        // Follow mouse position
-        cursorImage.transform.position = Mouse.current.position.ReadValue();
+        // Follow controller cursor or mouse depending on active input mode
+        if (ControllerCursor.usingController && ControllerCursor.instance != null)
+            cursorImage.transform.position = ControllerCursor.instance.GetScreenPositionPublic();
+        else
+            cursorImage.transform.position = Mouse.current.position.ReadValue();
 
         // Right click or B button cancels
         if (Mouse.current.rightButton.wasPressedThisFrame ||
@@ -39,13 +42,16 @@ public class ItemCursor : MonoBehaviour
         cursorImage.sprite = sprite;
         cursorImage.color = color;
         cursorImage.enabled = true;
-        Cursor.visible = false;
+        // Only hide hardware cursor if using mouse — controller already hides it
+        if (!ControllerCursor.usingController)
+            Cursor.visible = false;
     }
 
     public void ClearSelection()
     {
         selectedItemName = "";
         cursorImage.enabled = false;
-        Cursor.visible = true;
+        if (!ControllerCursor.usingController)
+            Cursor.visible = true;
     }
 }

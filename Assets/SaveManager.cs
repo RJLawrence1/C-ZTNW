@@ -97,6 +97,12 @@ public class SaveManager : MonoBehaviour
             PlayerPrefs.SetFloat("ItemColorB" + i, itemColors[i].b);
         }
 
+        // Save picked up item names so they don't respawn on load
+        var pickedUp = new List<string>(Interactable.pickedUpItems);
+        PlayerPrefs.SetInt("PickedUpCount", pickedUp.Count);
+        for (int i = 0; i < pickedUp.Count; i++)
+            PlayerPrefs.SetString("PickedUp" + i, pickedUp[i]);
+
         Interactable[] allInteractables = FindObjectsOfType<Interactable>(true);
         PlayerPrefs.SetInt("InteractableCount", allInteractables.Length);
         for (int i = 0; i < allInteractables.Length; i++)
@@ -172,6 +178,12 @@ public class SaveManager : MonoBehaviour
             );
             InventoryManager.instance.AddItem(itemName, null, color);
         }
+
+        // Restore picked up items so they don't respawn
+        Interactable.pickedUpItems.Clear();
+        int pickedUpCount = PlayerPrefs.GetInt("PickedUpCount");
+        for (int i = 0; i < pickedUpCount; i++)
+            Interactable.pickedUpItems.Add(PlayerPrefs.GetString("PickedUp" + i));
 
         Interactable[] allInteractables = FindObjectsOfType<Interactable>(true);
         int interactableCount = PlayerPrefs.GetInt("InteractableCount");
