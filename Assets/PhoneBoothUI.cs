@@ -9,6 +9,7 @@ public class PhoneBoothUI : MonoBehaviour
 {
     public static PhoneBoothUI instance;
     public static bool isInPhoneBooth = false;
+    public static string currentEra = "1987";
 
     public GameObject phoneBoothPanel;
     public TextMeshProUGUI phoneDisplay;
@@ -19,12 +20,9 @@ public class PhoneBoothUI : MonoBehaviour
 
     [Header("Audio")]
     public AudioSource audioSource;
-    // A second dedicated AudioSource just for dial beeps so we can pitch-shift it
-    // without affecting the main audio (dial tone, pickup, hangup sounds etc.)
-    // Add a second AudioSource component on the same GameObject and drag it here.
     public AudioSource dialBeepSource;
     public AudioClip pickupClip;
-    public AudioClip predialingClip; // Plays once before the looping dial tone starts
+    public AudioClip predialingClip;
     public AudioClip hangupClip;
     public AudioClip dialTone;
     public AudioClip invalidNumberClip;
@@ -49,7 +47,26 @@ public class PhoneBoothUI : MonoBehaviour
     private string dialedNumber = "";
     private const string PREFIX = "1-650-";
     private PhoneBooth currentBooth;
-    private bool isProcessing = false; // Locks all buttons while a call is playing out
+    private bool isProcessing = false;
+
+    private int sameEraCount = 0;
+    private int callOverCount = 0;
+
+    private string[] sameEraLines = {
+        "...I'm already here.",
+        "That's now. I'm standing in it.",
+        "I don't think the machine is supposed to do that.",
+        "Yeah, I'm not going anywhere.",
+        "...Did I just try to travel to right now?"
+    };
+
+    private string[] callOverLines = {
+        "Zoey, get your ass over here.",
+        "Zo, come on, we're going.",
+        "Zoey! Booth. Now.",
+        "Hey, Zo, move it!",
+        "Zoey, quit wandering, we're leaving."
+    };
 
     void Awake()
     {
@@ -61,6 +78,23 @@ public class PhoneBoothUI : MonoBehaviour
         phoneBoothPanel.SetActive(false);
         SetupButtons();
         UpdateDisplay();
+
+        // Teleport Curly and Zoey to their spawn points next to the booth
+        PhoneBooth booth = FindObjectOfType<PhoneBooth>();
+        if (booth != null)
+        {
+            Transform curlySpawn = booth.transform.Find("CurlySpawn");
+            Transform zoeySpawn = booth.transform.Find("ZoeySpawn");
+
+            CurlyMovement curly = FindObjectOfType<CurlyMovement>();
+            ZoeyAI zoey = FindObjectOfType<ZoeyAI>();
+
+            if (curlySpawn != null && curly != null)
+                curly.transform.position = curlySpawn.position;
+
+            if (zoeySpawn != null && zoey != null)
+                zoey.transform.position = zoeySpawn.position;
+        }
     }
 
     void Update()
@@ -68,7 +102,6 @@ public class PhoneBoothUI : MonoBehaviour
         if (!isInPhoneBooth) return;
         if (isProcessing) return;
 
-        // Don't process digit keys on the same frame as Enter to avoid re-dialing the last digit
         if (!Keyboard.current.enterKey.wasPressedThisFrame)
         {
             if (Keyboard.current.digit1Key.wasPressedThisFrame) DialDigit("1");
@@ -150,7 +183,6 @@ public class PhoneBoothUI : MonoBehaviour
 
     void DialDigit(string digit)
     {
-        // * and # don't count toward the 8-digit limit
         if (digit != "*" && digit != "#" && dialedNumber.Length >= 8) return;
 
         if (digit != "*" && digit != "#")
@@ -158,18 +190,15 @@ public class PhoneBoothUI : MonoBehaviour
 
         UpdateDisplay();
 
-        // Flash the corresponding button visually so keyboard/controller feel like a real press
         Button btn = GetButtonForDigit(digit);
         if (btn != null)
             StartCoroutine(FlashButton(btn));
 
-        // Pick the right clip for this key and play it through the dedicated beep source
         AudioClip clip = GetDialClip(digit);
         if (clip != null && dialBeepSource != null)
             dialBeepSource.PlayOneShot(clip);
     }
 
-    // Returns the Button component that matches the given digit string
     Button GetButtonForDigit(string digit)
     {
         switch (digit)
@@ -190,7 +219,6 @@ public class PhoneBoothUI : MonoBehaviour
         }
     }
 
-    // Briefly triggers the button's pressed visual state so it looks clicked
     IEnumerator FlashButton(Button button)
     {
         var eventData = new PointerEventData(EventSystem.current);
@@ -229,8 +257,6 @@ public class PhoneBoothUI : MonoBehaviour
         dialedNumber = "";
         UpdateDisplay();
 
-        // Only restart the dial tone if it isn't already playing —
-        // avoids the popping noise caused by stopping and restarting mid-playback
         if (dialTone != null && (!audioSource.isPlaying || audioSource.clip != dialTone))
         {
             audioSource.clip = dialTone;
@@ -249,7 +275,6 @@ public class PhoneBoothUI : MonoBehaviour
 
     void HangUp()
     {
-        // Don't allow hanging up while a call is playing out
         if (isProcessing) return;
         dialedNumber = "";
         Hide();
@@ -267,7 +292,6 @@ public class PhoneBoothUI : MonoBehaviour
     {
         isProcessing = true;
 
-        // Play the predialing clip (e.g. connecting/ringing sound) before the call response
         if (predialingClip != null)
         {
             audioSource.loop = false;
@@ -285,13 +309,16 @@ public class PhoneBoothUI : MonoBehaviour
         switch (number)
         {
             case "0824-1957":
-                yield return StartCoroutine(TimeTravel("1957"));
+                if (currentEra == "1957") yield return StartCoroutine(SameEra());
+                else yield return StartCoroutine(TimeTravel("1957"));
                 break;
             case "0824-1987":
-                yield return StartCoroutine(TimeTravel("1987"));
+                if (currentEra == "1987") yield return StartCoroutine(SameEra());
+                else yield return StartCoroutine(TimeTravel("1987"));
                 break;
             case "0824-2017":
-                yield return StartCoroutine(TimeTravel("2017"));
+                if (currentEra == "2017") yield return StartCoroutine(SameEra());
+                else yield return StartCoroutine(TimeTravel("2017"));
                 break;
             case "1026-1955":
                 yield return StartCoroutine(BTTF1955());
@@ -317,10 +344,48 @@ public class PhoneBoothUI : MonoBehaviour
         }
     }
 
-    IEnumerator TimeTravel(string era)
+    IEnumerator SameEra()
     {
         Hide();
-        yield return new WaitForSeconds(0.5f); // Small delay so Hide() can finish cleanly
+        DialogueLabel.curlyLabel.Say(sameEraLines[sameEraCount % sameEraLines.Length]);
+        sameEraCount++;
+        yield return new WaitForSeconds(3f);
+    }
+
+    IEnumerator TimeTravel(string era)
+    {
+        // Close the phone UI first
+        Hide();
+
+        // Call Zoey over
+        ZoeyAI zoey = FindObjectOfType<ZoeyAI>();
+        if (zoey != null && currentBooth != null)
+        {
+            // Find ZoeySpawn on the booth
+            Transform zoeySpawn = currentBooth.transform.Find("ZoeySpawn");
+            Vector3 destination = zoeySpawn != null ? zoeySpawn.position : currentBooth.transform.position;
+
+            // Curly calls her over
+            DialogueLabel.curlyLabel.Say(callOverLines[callOverCount % callOverLines.Length]);
+            callOverCount++;
+            yield return new WaitForSeconds(2f);
+
+            // Zoey hustles to the booth
+            zoey.HustleTo(destination);
+
+            // Wait until she arrives, with a timeout of 10 seconds just in case
+            float timeout = 10f;
+            while (!zoey.hasArrived && timeout > 0f)
+            {
+                timeout -= Time.deltaTime;
+                yield return null;
+            }
+        }
+
+        // Small buffer before scene load
+        yield return new WaitForSeconds(0.5f);
+
+        currentEra = era;
 
         switch (era)
         {

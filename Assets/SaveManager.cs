@@ -11,9 +11,11 @@ public class SaveManager : MonoBehaviour
     public static SaveManager instance;
 
     [Header("UI")]
-    // Drag a TextMeshProUGUI element from your Canvas here.
-    // It will briefly show "Game Saved" or "Game Loaded" then fade out.
     public TextMeshProUGUI notificationText;
+
+    [Header("Fallback Sprite")]
+    // Drag your white square sprite here — used when a sprite can't be found on load
+    public Sprite defaultItemSprite;
 
     // Cached references
     private CurlyMovement curly;
@@ -32,7 +34,6 @@ public class SaveManager : MonoBehaviour
         curly = FindObjectOfType<CurlyMovement>();
         zoey = FindObjectOfType<ZoeyAI>();
 
-        // Hide the notification text at startup
         if (notificationText != null)
             notificationText.color = new Color(notificationText.color.r, notificationText.color.g, notificationText.color.b, 0f);
     }
@@ -47,7 +48,6 @@ public class SaveManager : MonoBehaviour
         SceneManager.sceneLoaded -= OnSceneLoaded;
     }
 
-    // After a load, re-cache references and restore state once the new scene is ready
     void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
         curly = FindObjectOfType<CurlyMovement>();
@@ -70,8 +70,9 @@ public class SaveManager : MonoBehaviour
 
     public void SaveGame()
     {
-        // Save current scene name so we can return to it on load
+        // Save current scene and era
         PlayerPrefs.SetString("SavedScene", SceneManager.GetActiveScene().name);
+        PlayerPrefs.SetString("CurrentEra", PhoneBoothUI.currentEra);
 
         if (curly != null)
         {
@@ -117,7 +118,7 @@ public class SaveManager : MonoBehaviour
             DialogueLabel.curlyLabel.Say("...The hell?");
 
         ShowNotification("Game Saved");
-        Debug.Log("Game saved in scene: " + SceneManager.GetActiveScene().name);
+        Debug.Log("Game saved in scene: " + SceneManager.GetActiveScene().name + " | Era: " + PhoneBoothUI.currentEra);
     }
 
     public void LoadGame()
@@ -131,12 +132,10 @@ public class SaveManager : MonoBehaviour
 
         if (savedScene == currentScene)
         {
-            // Same scene — restore directly without reloading
             StartCoroutine(RestoreAfterLoad());
         }
         else
         {
-            // Different scene — load it, then restore once it's ready
             pendingLoad = true;
             SceneManager.LoadScene(savedScene);
         }
@@ -149,6 +148,9 @@ public class SaveManager : MonoBehaviour
 
         curly = FindObjectOfType<CurlyMovement>();
         zoey = FindObjectOfType<ZoeyAI>();
+
+        // Restore era
+        PhoneBoothUI.currentEra = PlayerPrefs.GetString("CurrentEra", "1987");
 
         if (curly != null)
         {
@@ -176,7 +178,12 @@ public class SaveManager : MonoBehaviour
                 PlayerPrefs.GetFloat("ItemColorG" + i),
                 PlayerPrefs.GetFloat("ItemColorB" + i)
             );
-            InventoryManager.instance.AddItem(itemName, null, color);
+
+            // Try to find the sprite from the store, fall back to default white square
+            Sprite sprite = InventoryData.GetSprite(itemName);
+            if (sprite == null) sprite = defaultItemSprite;
+
+            InventoryManager.instance.AddItem(itemName, sprite, color);
         }
 
         // Restore picked up items so they don't respawn
@@ -201,7 +208,7 @@ public class SaveManager : MonoBehaviour
         if (Random.Range(0, 100) == 0)
             StartCoroutine(LoadDialogue());
 
-        Debug.Log("Game loaded in scene: " + SceneManager.GetActiveScene().name);
+        Debug.Log("Game loaded in scene: " + SceneManager.GetActiveScene().name + " | Era: " + PhoneBoothUI.currentEra);
     }
 
     void ShowNotification(string message)
@@ -215,7 +222,6 @@ public class SaveManager : MonoBehaviour
     {
         notificationText.text = message;
 
-        // Fade in quickly
         Color c = notificationText.color;
         c.a = 0f;
         notificationText.color = c;
@@ -227,10 +233,8 @@ public class SaveManager : MonoBehaviour
             yield return null;
         }
 
-        // Hold for 1.5 seconds
         yield return new WaitForSeconds(1.5f);
 
-        // Fade out slowly
         while (c.a > 0f)
         {
             c.a -= Time.deltaTime * 2f;

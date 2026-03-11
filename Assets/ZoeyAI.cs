@@ -5,8 +5,10 @@ using System.Collections.Generic;
 public class ZoeyAI : MonoBehaviour
 {
     public float moveSpeed = 2.5f;
+    public float hustleSpeed = 6f;
     public PolygonCollider2D walkableArea;
     public Transform curly;
+    public Transform zoeyReturnPoint;
     public float waitTimeMin = 2f;
     public float waitTimeMax = 5f;
     public float returnDistance = 5f;
@@ -19,6 +21,16 @@ public class ZoeyAI : MonoBehaviour
     public float minScale = 0.5f;
     public float maxScale = 1f;
 
+    // Set to true when she arrives at a booth hustle destination
+    public bool hasArrived = false;
+
+    private float currentMoveSpeed;
+    private bool isHustling = false;
+    private bool isReturningToCurly = false;
+
+    private float returnRecalcTimer = 0f;
+    private float returnRecalcInterval = 0.5f;
+
     private Seeker seeker;
     private List<Vector3> path = new List<Vector3>();
     private int pathIndex = 0;
@@ -30,15 +42,16 @@ public class ZoeyAI : MonoBehaviour
     void Start()
     {
         seeker = GetComponent<Seeker>();
+        currentMoveSpeed = moveSpeed;
         StartWait();
     }
 
     void Update()
     {
-        // Only paused when Curly is actively talking to Zoey (set by ZoeyInteractable)
         if (isPaused) return;
         if (SettingsMenu.isOpen) return;
         if (SceneDoor.movementLocked) return;
+        if (PhoneBoothUI.isInPhoneBooth) return;
 
         HandleMovement();
         HandleScaling();
@@ -58,6 +71,9 @@ public class ZoeyAI : MonoBehaviour
     {
         isMoving = false;
         isWaiting = false;
+        isHustling = false;
+        isReturningToCurly = false;
+        currentMoveSpeed = moveSpeed;
         path.Clear();
         pendingInteractable = null;
         StartWait();
@@ -68,6 +84,17 @@ public class ZoeyAI : MonoBehaviour
         pendingInteractable = target;
         isWaiting = false;
         MoveToPosition(target.transform.position);
+    }
+
+    // Sends Zoey sprinting to a position — sets hasArrived = true when she gets there (unless returning to Curly)
+    public void HustleTo(Vector3 destination)
+    {
+        hasArrived = false;
+        isHustling = true;
+        currentMoveSpeed = hustleSpeed;
+        isWaiting = false;
+        pendingInteractable = null;
+        MoveToPosition(destination);
     }
 
     public void MoveToPosition(Vector3 destination)
@@ -119,12 +146,23 @@ public class ZoeyAI : MonoBehaviour
 
     void HandleMovement()
     {
+        // If returning to Curly, keep recalculating path so she follows him as he moves
+        if (isReturningToCurly)
+        {
+            returnRecalcTimer += Time.deltaTime;
+            if (returnRecalcTimer >= returnRecalcInterval)
+            {
+                returnRecalcTimer = 0f;
+                Transform returnTarget = zoeyReturnPoint != null ? zoeyReturnPoint : curly;
+                MoveToPosition(returnTarget.position);
+            }
+        }
+
         if (isMoving && path.Count > 0)
         {
             Vector3 target = path[pathIndex];
             target.z = 0f;
 
-            // --- Separation from Curly ---
             Vector3 separation = Vector3.zero;
             if (curly != null)
             {
@@ -133,29 +171,21 @@ public class ZoeyAI : MonoBehaviour
                 float dist = toZoey.magnitude;
             }
 
-            // Combine path following with separation steering
             Vector3 moveDir = (target - transform.position).normalized;
             Vector3 combinedMove = (moveDir + separation).normalized;
-            Vector3 delta = combinedMove * moveSpeed * Time.deltaTime;
+            Vector3 delta = combinedMove * currentMoveSpeed * Time.deltaTime;
 
-            // --- Wall sliding ---
-            // Try full move first, then fall back to X-only or Y-only
-            // so she glides along walls instead of coming to a dead stop
             Vector3 newPos = transform.position + delta;
             newPos.z = 0f;
 
             if (walkableArea.OverlapPoint(newPos) && newPos.y > verbBarWorldY)
             {
-                // Full move is fine
                 transform.position = newPos;
             }
             else
             {
-                // Try sliding along X axis only
                 Vector3 slideX = transform.position + new Vector3(delta.x, 0f, 0f);
                 slideX.z = 0f;
-
-                // Try sliding along Y axis only
                 Vector3 slideY = transform.position + new Vector3(0f, delta.y, 0f);
                 slideY.z = 0f;
 
@@ -165,12 +195,11 @@ public class ZoeyAI : MonoBehaviour
                     transform.position = slideY;
                 else
                 {
-                    // Try diagonal directions as a last resort for corners
                     Vector3[] fallbacks = {
-                        new Vector3( delta.x,  delta.y, 0f).normalized * moveSpeed * Time.deltaTime,
-                        new Vector3(-delta.x,  delta.y, 0f).normalized * moveSpeed * Time.deltaTime,
-                        new Vector3( delta.x, -delta.y, 0f).normalized * moveSpeed * Time.deltaTime,
-                        new Vector3(-delta.x, -delta.y, 0f).normalized * moveSpeed * Time.deltaTime,
+                        new Vector3( delta.x,  delta.y, 0f).normalized * currentMoveSpeed * Time.deltaTime,
+                        new Vector3(-delta.x,  delta.y, 0f).normalized * currentMoveSpeed * Time.deltaTime,
+                        new Vector3( delta.x, -delta.y, 0f).normalized * currentMoveSpeed * Time.deltaTime,
+                        new Vector3(-delta.x, -delta.y, 0f).normalized * currentMoveSpeed * Time.deltaTime,
                     };
 
                     bool moved = false;
@@ -186,7 +215,6 @@ public class ZoeyAI : MonoBehaviour
                         }
                     }
 
-                    // If truly stuck, nudge toward walkable area center then skip waypoint
                     if (!moved)
                     {
                         Vector3 center = walkableArea.bounds.center;
@@ -198,12 +226,7 @@ public class ZoeyAI : MonoBehaviour
                     if (pathIndex >= path.Count)
                     {
                         isMoving = false;
-                        if (pendingInteractable != null)
-                        {
-                            pendingInteractable.OnInteract();
-                            pendingInteractable = null;
-                        }
-                        StartWait();
+                        OnReachedDestination();
                     }
                     return;
                 }
@@ -215,15 +238,42 @@ public class ZoeyAI : MonoBehaviour
                 if (pathIndex >= path.Count)
                 {
                     isMoving = false;
-                    if (pendingInteractable != null)
-                    {
-                        pendingInteractable.OnInteract();
-                        pendingInteractable = null;
-                    }
-                    StartWait();
+                    OnReachedDestination();
                 }
             }
         }
+    }
+
+    void OnReachedDestination()
+    {
+        if (pendingInteractable != null)
+        {
+            pendingInteractable.OnInteract();
+            pendingInteractable = null;
+        }
+
+        if (isHustling)
+        {
+            isHustling = false;
+            currentMoveSpeed = moveSpeed;
+
+            if (isReturningToCurly)
+            {
+                // Came back to Curly — resume wandering, don't set hasArrived
+                isReturningToCurly = false;
+                returnRecalcTimer = 0f;
+            }
+            else
+            {
+                // Arrived at booth hustle destination
+                hasArrived = true;
+            }
+
+            StartWait();
+            return;
+        }
+
+        StartWait();
     }
 
     void HandleScaling()
@@ -235,9 +285,14 @@ public class ZoeyAI : MonoBehaviour
 
     void PickNextDestination()
     {
-        if (Vector3.Distance(transform.position, curly.position) > returnDistance)
+        Transform returnTarget = zoeyReturnPoint != null ? zoeyReturnPoint : curly;
+
+        if (Vector3.Distance(transform.position, returnTarget.position) > returnDistance)
         {
-            MoveToPosition(curly.position);
+            // Hustle back to Curly
+            isReturningToCurly = true;
+            returnRecalcTimer = 0f;
+            HustleTo(returnTarget.position);
             return;
         }
 

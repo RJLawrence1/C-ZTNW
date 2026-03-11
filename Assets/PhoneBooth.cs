@@ -6,8 +6,19 @@ public class PhoneBooth : MonoBehaviour, IInteractable
 {
     private bool isInUse = false;
 
-    // Cached reference — avoids FindObjectOfType on every click
+    // Cached references
     private CurlyMovement curly;
+    private ZoeyAI zoey;
+
+    private string[] callOverLines = {
+        "Zoey, get your ass over here.",
+        "Zo, come on, we're going.",
+        "Zoey! Booth. Now.",
+        "Hey, Zo, move it!",
+        "Zoey, quit wandering, we're leaving."
+    };
+
+    private int callOverCount = 0;
 
     private string[] pickUpFails = {
         "I can't pick up a phone booth.",
@@ -46,6 +57,7 @@ public class PhoneBooth : MonoBehaviour, IInteractable
     void Start()
     {
         curly = FindObjectOfType<CurlyMovement>();
+        zoey = FindObjectOfType<ZoeyAI>();
     }
 
     void Update()
@@ -140,14 +152,37 @@ public class PhoneBooth : MonoBehaviour, IInteractable
     IEnumerator EnterBooth()
     {
         isInUse = true;
-        DialogueLabel.curlyLabel.Say("Let's see if it works.");
+
+        // Curly calls Zoey over
+        DialogueLabel.curlyLabel.Say(callOverLines[callOverCount % callOverLines.Length]);
+        callOverCount++;
         yield return new WaitForSeconds(2f);
+
+        // Zoey hustles to her spawn point next to the booth
+        if (zoey != null)
+        {
+            Transform zoeySpawn = transform.Find("ZoeySpawn");
+            Vector3 destination = zoeySpawn != null ? zoeySpawn.position : transform.position;
+            zoey.HustleTo(destination);
+
+            // Wait for her to arrive, with a 10 second timeout
+            float timeout = 10f;
+            while (!zoey.hasArrived && timeout > 0f)
+            {
+                timeout -= Time.deltaTime;
+                yield return null;
+            }
+        }
+
+        // Now open the phone UI
         PhoneBoothUI.instance.Show(this);
     }
 
     public void ExitBooth()
     {
         isInUse = false;
+        if (zoey != null)
+            zoey.StopAndStay();
     }
 
     IEnumerator UseZoeySequence()

@@ -68,6 +68,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SaveManager
   notificationText: {fileID: 0}
+  defaultItemSprite: {fileID: 7482667652216324306, guid: 311925a002f4447b3a28927169b83ea6, type: 3}
 --- !u!114 &6895171124018819939
 MonoBehaviour:
   m_ObjectHideFlags: 0

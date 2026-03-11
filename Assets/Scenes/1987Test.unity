@@ -481,6 +481,11 @@ Transform:
   - {fileID: 1400215286}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!4 &824392197 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 6377739848896938416, guid: 17852144dfddffb49a05cd270da1487e, type: 3}
+  m_PrefabInstance: {fileID: 5326921431138789633}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &921603284
 GameObject:
   m_ObjectHideFlags: 0
@@ -1745,6 +1750,10 @@ PrefabInstance:
       propertyPath: walkableArea
       value: 
       objectReference: {fileID: 1399550060}
+    - target: {fileID: 1780573560806146855, guid: 7457df7a83593574d9cb82ec24b173ad, type: 3}
+      propertyPath: zoeyReturnPoint
+      value: 
+      objectReference: {fileID: 824392197}
     - target: {fileID: 4582449438953888395, guid: 7457df7a83593574d9cb82ec24b173ad, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
@@ -2937,8 +2946,7 @@ PrefabInstance:
       propertyPath: controllerCursorImage
       value: 
       objectReference: {fileID: 1476057054}
-    m_RemovedComponents:
-    - {fileID: 3027459184119826987, guid: 4e8210c4d7523404fa984b39c514a1da, type: 3}
+    m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents: []
