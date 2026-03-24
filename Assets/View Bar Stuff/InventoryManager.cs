@@ -238,7 +238,7 @@ public class InventoryManager : MonoBehaviour
             itemNames.RemoveAt(first); itemSprites.RemoveAt(first); itemColors.RemoveAt(first);
 
             AddItem(combo.resultName, combo.resultSprite, combo.resultColor);
-            DialogueLabel.curlyLabel.Say("Hm. Yeah, that works.");
+            DialogueLabel.curlyLabel.Say("Yeah. That works.");
         }
         else
         {

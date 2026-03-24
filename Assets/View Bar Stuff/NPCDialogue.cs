@@ -34,13 +34,35 @@ public class NPCDialogue : MonoBehaviour
         }
     }
 
+    // Gender options for auto-generating wrong item lines
+    public enum NPCGender { Male, Female, Ambiguous }
+
     [Header("NPC Settings")]
     public string npcName = "NPC";
+    public NPCGender gender = NPCGender.Ambiguous;
     public DialogueTopic[] topics;
 
     [Header("Goodbye Line")]
-    public string curlyGoodbyeLine = "See you around.";
-    public string npcGoodbyeLine = "Take care.";
+    public string curlyGoodbyeLine = "Take it easy.";
+    public string npcGoodbyeLine = "Yeah. See you around.";
+
+    [Header("Trade / Quest")]
+    [Tooltip("The item name required to complete the trade. Leave blank for no trade.")]
+    public string requiredItemName = "";
+
+    [Tooltip("Line the NPC says when the trade completes successfully.")]
+    [TextArea] public string tradeCompleteLine = "";
+
+    [Tooltip("Item given to the player as a reward. Leave blank for no reward.")]
+    public string rewardItemName = "";
+    public Sprite rewardItemSprite;
+    public Color rewardItemColor = Color.white;
+
+    [Tooltip("Optional custom wrong item line. Leave blank to use the auto-generated gender line.")]
+    [TextArea] public string wrongItemLine = "";
+
+    // Set to true once the trade is completed so it can't be done again
+    [HideInInspector] public bool tradeCompleted = false;
 
     // Which topics are currently visible — lets you unlock topics mid-game
     public bool[] topicUnlocked;
@@ -67,7 +89,6 @@ public class NPCDialogue : MonoBehaviour
 
     void ShowTopics()
     {
-        // Build list of active topics
         List<string> options = new List<string>();
         List<System.Action> actions = new List<System.Action>();
 
@@ -79,7 +100,6 @@ public class NPCDialogue : MonoBehaviour
             actions.Add(() => SelectTopic(captured));
         }
 
-        // Always add Goodbye last
         options.Add("Goodbye.");
         actions.Add(() => StartCoroutine(SayGoodbye()));
 
@@ -97,42 +117,30 @@ public class NPCDialogue : MonoBehaviour
         DialogueLine line = topic.GetCurrentLine();
         if (line == null) yield break;
 
-        // Hide the dialogue panel visually but keep isInDialogue true while lines play
         DialogueManager.instance.dialoguePanel.SetActive(false);
         DialogueManager.isInDialogue = true;
 
-        // Wait a frame
         yield return null;
         yield return new WaitForSeconds(0.2f);
 
-        // Curly speaks first
         if (!string.IsNullOrEmpty(line.curlyLine))
         {
-            Debug.Log("About to say: " + line.curlyLine + " | isInDialogue: " + DialogueManager.isInDialogue + " | curlyLabel null: " + (DialogueLabel.curlyLabel == null));
             DialogueLabel.curlyLabel.dialogueText.color = new Color(0f, 1f, 1f, 1f);
             DialogueLabel.curlyLabel.Say(line.curlyLine);
-            Debug.Log("Curly text: " + DialogueLabel.curlyLabel.dialogueText.text + " | displaying: " + DialogueLabel.curlyLabel.IsDisplaying());
-            Debug.Log("curlyLabel GameObject: " + DialogueLabel.curlyLabel.gameObject.name);
             yield return new WaitUntil(() => !DialogueLabel.curlyLabel.IsDisplaying());
         }
 
-        // Small pause between lines
         yield return new WaitForSeconds(0.3f);
 
-        // NPC responds
         if (!string.IsNullOrEmpty(line.npcLine))
         {
             DialogueLabel.ShowNPCLine(npcName, line.npcLine, transform.position);
             yield return new WaitUntil(() => !DialogueLabel.npcLabel.IsDisplaying());
         }
 
-        // Small pause before showing topics again
         yield return new WaitForSeconds(0.3f);
 
-        // Advance to next line in rotation
         topic.Advance();
-
-        // Show topics again
         ShowTopics();
     }
 
@@ -157,6 +165,84 @@ public class NPCDialogue : MonoBehaviour
 
         isTalking = false;
         DialogueManager.instance.HideDialogue();
+    }
+
+    // Called from Interactable when the player uses an item on this NPC
+    public void TryTradeItem(string usedItemName)
+    {
+        // No trade set up on this NPC — fall through to generic wrong item line
+        if (string.IsNullOrEmpty(requiredItemName))
+        {
+            StartCoroutine(SayWrongItem());
+            return;
+        }
+
+        // Trade already done
+        if (tradeCompleted)
+        {
+            StartCoroutine(SayWrongItem());
+            return;
+        }
+
+        // Wrong item
+        if (usedItemName != requiredItemName)
+        {
+            StartCoroutine(SayWrongItem());
+            return;
+        }
+
+        // Correct item — do the trade
+        StartCoroutine(CompleteTrade());
+    }
+
+    IEnumerator CompleteTrade()
+    {
+        tradeCompleted = true;
+
+        // Consume the required item from inventory
+        InventoryManager.instance.RemoveItem(requiredItemName);
+
+        // Play the trade complete line
+        if (!string.IsNullOrEmpty(tradeCompleteLine))
+        {
+            DialogueLabel.ShowNPCLine(npcName, tradeCompleteLine, transform.position);
+            yield return new WaitUntil(() => !DialogueLabel.npcLabel.IsDisplaying());
+        }
+
+        yield return new WaitForSeconds(0.3f);
+
+        // Give reward item if one is set
+        if (!string.IsNullOrEmpty(rewardItemName))
+        {
+            InventoryManager.instance.AddItem(rewardItemName, rewardItemSprite, rewardItemColor);
+            DialogueLabel.curlyLabel.Say("Alright. Thanks.");
+            yield return new WaitUntil(() => !DialogueLabel.curlyLabel.IsDisplaying());
+        }
+    }
+
+    IEnumerator SayWrongItem()
+    {
+        // Use custom wrong item line if set, otherwise auto-generate from gender
+        string line = wrongItemLine;
+
+        if (string.IsNullOrEmpty(line))
+        {
+            switch (gender)
+            {
+                case NPCGender.Male:
+                    line = "He doesn't need that.";
+                    break;
+                case NPCGender.Female:
+                    line = "She doesn't need that.";
+                    break;
+                case NPCGender.Ambiguous:
+                    line = "They don't need that.";
+                    break;
+            }
+        }
+
+        DialogueLabel.curlyLabel.Say(line);
+        yield return new WaitUntil(() => !DialogueLabel.curlyLabel.IsDisplaying());
     }
 
     // Call this from code to unlock a topic mid-game

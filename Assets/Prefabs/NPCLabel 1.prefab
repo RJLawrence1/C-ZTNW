@@ -9,7 +9,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 995617926437339649}
-  - component: {fileID: 5275622232880871635}
   m_Layer: 0
   m_Name: NPCLabel 1
   m_TagString: Untagged
@@ -33,24 +32,6 @@ Transform:
   - {fileID: 1008874320992734762}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &5275622232880871635
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 539707468460375289}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4b68562ce0c28e649bce1c3742add165, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::DialogueLabel
-  dialogueText: {fileID: 4999549534218750216}
-  displayTime: 3
-  dialogueColor: {r: 1, g: 0.36000925, b: 0, a: 1}
-  isZoey: 0
-  isNPC: 1
-  offset: {x: 0, y: 0.5, z: 0}
 --- !u!1 &3240463201505779848
 GameObject:
   m_ObjectHideFlags: 0
@@ -251,3 +232,4 @@ MonoBehaviour:
   isZoey: 0
   isNPC: 1
   offset: {x: 0, y: 0.5, z: 0}
+  skipEnabled: 1

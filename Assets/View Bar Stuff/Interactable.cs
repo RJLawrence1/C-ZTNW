@@ -35,8 +35,8 @@ public class Interactable : MonoBehaviour, IInteractable
     }
 
     [Header("Pickup Lines")]
-    public string pickUpExamineLine = "Hm, what's this?";
-    public string pickUpLine = "Yeah this could definitely come in handy.";
+    public string pickUpExamineLine = "Hm.";
+    public string pickUpLine = "Yeah. That's coming with me.";
 
     private int lookAtCount = 0;
     private int pickUpCount = 0;
@@ -55,51 +55,51 @@ public class Interactable : MonoBehaviour, IInteractable
     private ZoeyAI zoey;
 
     private string[] lookAtFails = {
-        "Nothing to see here.",
-        "Still nothing to see here.",
-        "I don't know what you're looking for but it's not there.",
-        "Are you really doing this again?",
-        "I'm ignoring you now."
+        "Nothing.",
+        "Still nothing.",
+        "I've looked at it. It's not interesting.",
+        "You're really committed to this.",
+        "I'm not looking anymore."
     };
 
     private string[] pickUpFails = {
-        "I can't pick that up.",
-        "No really, I can't pick that up.",
-        "I really cannot pick that up.",
-        "I. Can't. Pick. That. Up.",
-        "Why do I even bother sometimes..."
+        "Not taking that.",
+        "Can't. Won't.",
+        "I've tried. It's a no.",
+        "This isn't a conversation I'm going to win, is it.",
+        "Fine. We're leaving it."
     };
 
     private string[] useItemFails = {
-        "I can't use that.",
-        "Nope, still can't use that.",
-        "What exactly do you think is going to happen here?",
-        "I have tried. It doesn't work. Move on.",
+        "That's not the move.",
+        "Still not the move.",
+        "I know what you're thinking. You're wrong.",
+        "Tried it. Nothing.",
         "..."
     };
 
     private string[] talkToFails = {
-        "I don't think it wants to talk.",
-        "It's still not talking.",
-        "It's an inanimate object.",
-        "I am not talking to that.",
-        "I'm done."
+        "It's not talking.",
+        "Hasn't changed.",
+        "It's not alive.",
+        "I'm not doing this anymore.",
+        "We're done."
     };
 
     private string[] interactFails = {
-        "Nothing happens.",
-        "Nothing happened again.",
-        "Shocking, still nothing.",
-        "What are you expecting from me here?",
-        "I give up."
+        "Nothing.",
+        "Same as before.",
+        "I don't know what the expectation is here.",
+        "It's just sitting there.",
+        "Alright. I'm out."
     };
 
     private string[] useZoeyFails = {
-        "I don't think that's a good idea.",
-        "Yeah no, still not doing that.",
-        "Curly, why do they keep asking me this?",
-        "I have better things to do than this.",
-        "I'm going for a walk."
+        "Nope.",
+        "Still nope.",
+        "Curly, tell them to stop.",
+        "I don't know what they think is gonna happen.",
+        "I'm taking a walk. Don't follow me."
     };
 
     void Awake()
@@ -175,19 +175,24 @@ public class Interactable : MonoBehaviour, IInteractable
 
     IEnumerator ZoeySequence()
     {
-        DialogueLabel.curlyLabel.Say("Hey Zo, can you come check this out for me?");
+        DialogueLabel.curlyLabel.Say("Zo. Come take a look at this.");
         yield return new WaitForSeconds(2f);
-        DialogueLabel.zoeyLabel.Say("Already on it.");
+        DialogueLabel.zoeyLabel.Say("On it.");
         yield return new WaitForSeconds(1f);
         zoey.WalkToInteract(this);
     }
 
     IEnumerator PickUpSequence()
     {
+        DialogueLabel.curlyLabel.skipEnabled = false;
+
         DialogueLabel.curlyLabel.Say(pickUpExamineLine);
         yield return new WaitForSeconds(3f);
         DialogueLabel.curlyLabel.Say(pickUpLine);
         yield return new WaitForSeconds(3f);
+
+        DialogueLabel.curlyLabel.skipEnabled = true;
+
         Sprite sprite = GetComponent<SpriteRenderer>() != null ? GetComponent<SpriteRenderer>().sprite : null;
         Color color = GetComponent<SpriteRenderer>() != null ? GetComponent<SpriteRenderer>().color : Color.white;
         InventoryManager.instance.AddItem(itemName, sprite, color);
@@ -206,19 +211,28 @@ public class Interactable : MonoBehaviour, IInteractable
         return line;
     }
 
-    public void OnItemUsed(string itemName)
+    public void OnItemUsed(string usedItemName)
     {
+        // If this interactable has an NPCDialogue, route to the trade system first
+        NPCDialogue npcDialogue = GetComponent<NPCDialogue>();
+        if (npcDialogue != null)
+        {
+            npcDialogue.TryTradeItem(usedItemName);
+            return;
+        }
+
+        // Otherwise use the standard item response list
         foreach (ItemResponse response in itemResponses)
         {
-            if (response.itemName == itemName)
+            if (response.itemName == usedItemName)
             {
                 DialogueLabel.curlyLabel.Say(response.response);
                 if (response.consumesItem)
-                    InventoryManager.instance.RemoveItem(itemName);
+                    InventoryManager.instance.RemoveItem(usedItemName);
                 return;
             }
         }
-        DialogueLabel.curlyLabel.Say("I don't think that'll work.");
+        DialogueLabel.curlyLabel.Say("That's not going to do anything.");
     }
 
     public void OnInteract()
@@ -232,7 +246,7 @@ public class Interactable : MonoBehaviour, IInteractable
         {
             case VerbManager.Verb.LookAt:
                 if (canLookAt)
-                    DialogueLabel.curlyLabel.Say("It's a " + itemName + ".");
+                    DialogueLabel.curlyLabel.Say("That's a " + itemName + ".");
                 else
                     DialogueLabel.curlyLabel.Say(GetFailLine(lookAtFails, ref lookAtCount));
                 break;
@@ -244,7 +258,13 @@ public class Interactable : MonoBehaviour, IInteractable
                 break;
             case VerbManager.Verb.UseItem:
                 if (canUseItem)
-                    DialogueLabel.curlyLabel.Say("I use the " + itemName + ".");
+                {
+                    // Check if a specific item is selected via the cursor
+                    if (ItemCursor.hasSelectedItem)
+                        OnItemUsed(ItemCursor.selectedItemName);
+                    else
+                        DialogueLabel.curlyLabel.Say("Use what.");
+                }
                 else
                     DialogueLabel.curlyLabel.Say(GetFailLine(useItemFails, ref useItemCount));
                 break;
@@ -255,20 +275,20 @@ public class Interactable : MonoBehaviour, IInteractable
                     if (npcDialogue != null)
                         npcDialogue.StartConversation();
                     else
-                        DialogueLabel.curlyLabel.Say("Hey there.");
+                        DialogueLabel.curlyLabel.Say("Hey.");
                 }
                 else
                     DialogueLabel.curlyLabel.Say(GetFailLine(talkToFails, ref talkToCount));
                 break;
             case VerbManager.Verb.Interact:
                 if (canInteract)
-                    DialogueLabel.curlyLabel.Say("I interact with the " + itemName + ".");
+                    DialogueLabel.curlyLabel.Say("Alright.");
                 else
                     DialogueLabel.curlyLabel.Say(GetFailLine(interactFails, ref interactCount));
                 break;
             case VerbManager.Verb.UseZoey:
                 if (canUseZoey)
-                    DialogueLabel.zoeyLabel.Say("Leave it to me!");
+                    DialogueLabel.zoeyLabel.Say("I'm already there.");
                 else
                     DialogueLabel.zoeyLabel.Say(GetFailLine(useZoeyFails, ref useZoeyCount));
                 break;

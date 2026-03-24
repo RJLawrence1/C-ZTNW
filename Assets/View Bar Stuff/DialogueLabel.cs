@@ -1,6 +1,8 @@
 using UnityEngine;
 using TMPro;
 using System.Collections;
+using System.Collections.Generic;
+using UnityEngine.InputSystem;
 
 public class DialogueLabel : MonoBehaviour
 {
@@ -20,6 +22,15 @@ public class DialogueLabel : MonoBehaviour
     private float timer = 0f;
     private Transform followTarget;
     private Vector3 staticWorldPos; // For NPC labels that follow a world position
+
+    // Tracks which lines have been seen before — persists across the whole session
+    private static HashSet<string> seenLines = new HashSet<string>();
+
+    // True while the current line is locked (first time playing — no skipping allowed)
+    private bool isLocked = false;
+
+    // Set to false before Say() to prevent skipping entirely — e.g. during pickup sequences
+    public bool skipEnabled = true;
 
     void Awake()
     {
@@ -54,9 +65,19 @@ public class DialogueLabel : MonoBehaviour
     {
         if (timer > 0f)
         {
+            // Check for skip input — only allowed if skip is enabled and line has been seen before
+            if (skipEnabled && !isLocked && IsSkipPressed())
+            {
+                Skip();
+                return;
+            }
+
             timer -= Time.deltaTime;
             if (timer <= 0f)
+            {
+                isLocked = false;
                 dialogueText.text = "";
+            }
         }
 
         transform.rotation = Camera.main.transform.rotation;
@@ -70,6 +91,24 @@ public class DialogueLabel : MonoBehaviour
         {
             transform.position = ClampToScreen(staticWorldPos + offset);
         }
+    }
+
+    // Returns true if the player pressed the skip button this frame
+    bool IsSkipPressed()
+    {
+        if (Keyboard.current != null && Keyboard.current.spaceKey.wasPressedThisFrame)
+            return true;
+        if (Gamepad.current != null && Gamepad.current.buttonSouth.wasPressedThisFrame)
+            return true;
+        return false;
+    }
+
+    // Immediately ends the current line
+    void Skip()
+    {
+        timer = 0f;
+        isLocked = false;
+        dialogueText.text = "";
     }
 
     Vector3 ClampToScreen(Vector3 worldPos)
@@ -90,6 +129,17 @@ public class DialogueLabel : MonoBehaviour
     {
         dialogueText.text = line;
         timer = displayTime;
+
+        // First time this line plays — lock it
+        if (!seenLines.Contains(line))
+        {
+            isLocked = true;
+            seenLines.Add(line);
+        }
+        else
+        {
+            isLocked = false;
+        }
     }
 
     public void SayAtPosition(string line, Vector3 worldPos)
@@ -97,6 +147,17 @@ public class DialogueLabel : MonoBehaviour
         staticWorldPos = worldPos;
         dialogueText.text = line;
         timer = displayTime;
+
+        // First time this line plays — lock it
+        if (!seenLines.Contains(line))
+        {
+            isLocked = true;
+            seenLines.Add(line);
+        }
+        else
+        {
+            isLocked = false;
+        }
     }
 
     // Static helper — shows an NPC line above a world position

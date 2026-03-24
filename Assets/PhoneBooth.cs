@@ -11,36 +11,36 @@ public class PhoneBooth : MonoBehaviour, IInteractable
     private ZoeyAI zoey;
 
     private string[] callOverLines = {
-        "Zoey, get your ass over here.",
-        "Zo, come on, we're going.",
-        "Zoey! Booth. Now.",
-        "Hey, Zo, move it!",
-        "Zoey, quit wandering, we're leaving."
+        "Zo. Let's go.",
+        "Zoey. Come on.",
+        "Hey. Booth. Now.",
+        "Zoey, move it.",
+        "Let's go, Zo. Come on."
     };
 
     private int callOverCount = 0;
 
     private string[] pickUpFails = {
-        "I can't pick up a phone booth.",
-        "Still can't pick it up.",
-        "It's bolted to the ground. I checked.",
-        "Why do you keep asking me to do this?",
-        "I'm not even going to look at you right now."
+        "Can't pick up a phone booth.",
+        "Still can't.",
+        "It's bolted down. I checked.",
+        "We're not doing this again.",
+        "I'm ignoring this now."
     };
 
     private string[] useItemFails = {
-        "I don't think that goes with a phone booth.",
-        "Nope.",
-        "What are you expecting here exactly?",
-        "I've tried. It's not happening.",
+        "That's not going to do anything.",
+        "Still no.",
+        "I don't know what you're expecting.",
+        "Tried it. Nothing.",
         "..."
     };
 
     private string[] talkToFails = {
-        "It's a phone booth. You use it to call people, not talk to it.",
+        "It's a phone booth. You call people with it.",
         "Still a phone booth.",
-        "I wonder sometimes. I really do.",
-        "I am not talking to a phone booth.",
+        "I genuinely don't know what you want from me.",
+        "Not talking to it.",
         "Done."
     };
 
@@ -126,7 +126,7 @@ public class PhoneBooth : MonoBehaviour, IInteractable
         switch (VerbManager.instance.currentVerb)
         {
             case VerbManager.Verb.LookAt:
-                DialogueLabel.curlyLabel.Say("It's a phone booth.");
+                DialogueLabel.curlyLabel.Say("Phone booth.");
                 break;
             case VerbManager.Verb.PickUp:
                 DialogueLabel.curlyLabel.Say(GetFailLine(pickUpFails, ref pickUpCount));
@@ -144,7 +144,7 @@ public class PhoneBooth : MonoBehaviour, IInteractable
                 StartCoroutine(UseZoeySequence());
                 break;
             default:
-                DialogueLabel.curlyLabel.Say("It's a phone booth.");
+                DialogueLabel.curlyLabel.Say("Phone booth.");
                 break;
         }
     }
@@ -189,14 +189,16 @@ public class PhoneBooth : MonoBehaviour, IInteractable
     {
         if (useZoeyCount == 0)
         {
-            DialogueLabel.curlyLabel.Say("Zoey, can you take a look at this?");
-            yield return new WaitForSeconds(3f);
-            DialogueLabel.zoeyLabel.Say("I already looked at it, Curly. It's a phone booth.");
+            DialogueLabel.curlyLabel.Say("Zo, take a look at this.");
+            yield return new WaitUntil(() => !DialogueLabel.curlyLabel.IsDisplaying());
+            yield return new WaitForSeconds(0.3f);
+            DialogueLabel.zoeyLabel.Say("Already looked at it. It's a phone booth.");
         }
         else if (useZoeyCount == 1)
         {
-            DialogueLabel.curlyLabel.Say("Yeah but like... does anything seem off about it?");
-            yield return new WaitForSeconds(3f);
+            DialogueLabel.curlyLabel.Say("Yeah but does anything seem off about it?");
+            yield return new WaitUntil(() => !DialogueLabel.curlyLabel.IsDisplaying());
+            yield return new WaitForSeconds(0.3f);
             DialogueLabel.zoeyLabel.Say("It's in the middle of nowhere. Everything seems off about it.");
         }
         else if (useZoeyCount == 2)
@@ -205,7 +207,7 @@ public class PhoneBooth : MonoBehaviour, IInteractable
         }
         else
         {
-            DialogueLabel.zoeyLabel.Say("I'm going for a walk.");
+            DialogueLabel.zoeyLabel.Say("I'm taking a walk.");
             isLockedOut = true;
         }
 

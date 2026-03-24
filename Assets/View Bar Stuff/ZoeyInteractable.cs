@@ -60,19 +60,19 @@ public class ZoeyInteractable : MonoBehaviour, IInteractable
         switch (VerbManager.instance.currentVerb)
         {
             case VerbManager.Verb.LookAt:
-                DialogueLabel.curlyLabel.Say("It's Zoey.");
+                DialogueLabel.curlyLabel.Say("That's Zoey.");
                 break;
             case VerbManager.Verb.PickUp:
-                DialogueLabel.curlyLabel.Say("I'm not even gonna try picking her up.");
+                DialogueLabel.curlyLabel.Say("Not happening.");
                 break;
             case VerbManager.Verb.UseItem:
-                DialogueLabel.curlyLabel.Say("Don't think I can use her.");
+                DialogueLabel.curlyLabel.Say("That's not what she's for.");
                 break;
             case VerbManager.Verb.TalkTo:
                 OpenTalkToZoey();
                 break;
             case VerbManager.Verb.Interact:
-                DialogueLabel.curlyLabel.Say("Last time I did that she bit me.");
+                DialogueLabel.curlyLabel.Say("Last time I tried that she bit me.");
                 break;
             case VerbManager.Verb.UseZoey:
                 StartCoroutine(UseZoeyOnZoey());
@@ -83,8 +83,8 @@ public class ZoeyInteractable : MonoBehaviour, IInteractable
     void OpenTalkToZoey()
     {
         string[] options = {
-            "How's it going?",
-            "You doing okay?",
+            "How you holdin' up?",
+            "You good?",
             "We should get moving.",
             "Never mind."
         };
@@ -101,58 +101,80 @@ public class ZoeyInteractable : MonoBehaviour, IInteractable
 
     IEnumerator HowsItGoing()
     {
-        DialogueLabel.curlyLabel.Say("How's life, Zo?");
-        yield return new WaitForSeconds(3f);
-        DialogueLabel.zoeyLabel.Say("Could be worse. Could be you.");
-        yield return new WaitForSeconds(3f);
-        DialogueLabel.curlyLabel.Say("...Fair enough.");
-        yield return new WaitForSeconds(3f);
+        DialogueLabel.curlyLabel.Say("How you holdin' up, Zo?");
+        yield return new WaitUntil(() => !DialogueLabel.curlyLabel.IsDisplaying());
+        yield return new WaitForSeconds(0.3f);
+        DialogueLabel.zoeyLabel.Say("Fine. Why, do I not look fine?");
+        yield return new WaitUntil(() => !DialogueLabel.zoeyLabel.IsDisplaying());
+        yield return new WaitForSeconds(0.3f);
+        DialogueLabel.curlyLabel.Say("You look fine.");
+        yield return new WaitUntil(() => !DialogueLabel.curlyLabel.IsDisplaying());
+        yield return new WaitForSeconds(0.3f);
+        DialogueLabel.zoeyLabel.Say("Then why'd you ask.");
+        yield return new WaitUntil(() => !DialogueLabel.zoeyLabel.IsDisplaying());
+        yield return new WaitForSeconds(0.3f);
         zoeyAI.isPaused = false;
     }
 
     IEnumerator YouDoingOkay()
     {
-        DialogueLabel.curlyLabel.Say("You doin' alright?");
-        yield return new WaitForSeconds(3f);
-        DialogueLabel.zoeyLabel.Say("I was until you asked.");
-        yield return new WaitForSeconds(3f);
-        DialogueLabel.curlyLabel.Say("Noted.");
-        yield return new WaitForSeconds(3f);
+        DialogueLabel.curlyLabel.Say("You good?");
+        yield return new WaitUntil(() => !DialogueLabel.curlyLabel.IsDisplaying());
+        yield return new WaitForSeconds(0.3f);
+        DialogueLabel.zoeyLabel.Say("Yeah. You?");
+        yield return new WaitUntil(() => !DialogueLabel.zoeyLabel.IsDisplaying());
+        yield return new WaitForSeconds(0.3f);
+        DialogueLabel.curlyLabel.Say("Yeah.");
+        yield return new WaitUntil(() => !DialogueLabel.curlyLabel.IsDisplaying());
+        yield return new WaitForSeconds(0.3f);
+        DialogueLabel.zoeyLabel.Say("Cool.");
+        yield return new WaitUntil(() => !DialogueLabel.zoeyLabel.IsDisplaying());
+        yield return new WaitForSeconds(0.3f);
         zoeyAI.isPaused = false;
     }
 
     IEnumerator ShouldGetMoving()
     {
-        DialogueLabel.curlyLabel.Say("We should probably get moving.");
-        yield return new WaitForSeconds(3f);
-        DialogueLabel.zoeyLabel.Say("I was ready ten minutes ago.");
-        yield return new WaitForSeconds(3f);
-        DialogueLabel.curlyLabel.Say("No you weren't.");
-        yield return new WaitForSeconds(3f);
-        DialogueLabel.zoeyLabel.Say("...No I wasn't.");
-        yield return new WaitForSeconds(3f);
+        DialogueLabel.curlyLabel.Say("We should probably move.");
+        yield return new WaitUntil(() => !DialogueLabel.curlyLabel.IsDisplaying());
+        yield return new WaitForSeconds(0.3f);
+        DialogueLabel.zoeyLabel.Say("I've been ready.");
+        yield return new WaitUntil(() => !DialogueLabel.zoeyLabel.IsDisplaying());
+        yield return new WaitForSeconds(0.3f);
+        DialogueLabel.curlyLabel.Say("No you haven't.");
+        yield return new WaitUntil(() => !DialogueLabel.curlyLabel.IsDisplaying());
+        yield return new WaitForSeconds(0.3f);
+        DialogueLabel.zoeyLabel.Say("...No I haven't.");
+        yield return new WaitUntil(() => !DialogueLabel.zoeyLabel.IsDisplaying());
+        yield return new WaitForSeconds(0.3f);
         zoeyAI.isPaused = false;
     }
 
     IEnumerator NeverMind()
     {
         DialogueLabel.curlyLabel.Say("Never mind.");
-        yield return new WaitForSeconds(3f);
-        DialogueLabel.zoeyLabel.Say("Typical.");
-        yield return new WaitForSeconds(3f);
+        yield return new WaitUntil(() => !DialogueLabel.curlyLabel.IsDisplaying());
+        yield return new WaitForSeconds(0.3f);
+        DialogueLabel.zoeyLabel.Say("Okay.");
+        yield return new WaitUntil(() => !DialogueLabel.zoeyLabel.IsDisplaying());
+        yield return new WaitForSeconds(0.3f);
         zoeyAI.isPaused = false;
     }
 
     IEnumerator UseZoeyOnZoey()
     {
-        DialogueLabel.curlyLabel.Say("Hey Zo... while you're at it,");
-        yield return new WaitForSeconds(3f);
-        DialogueLabel.curlyLabel.Say("maybe you could check ME out too?");
-        yield return new WaitForSeconds(3f);
-        DialogueLabel.zoeyLabel.Say("Not now, maybe later.");
-        yield return new WaitForSeconds(3f);
-        DialogueLabel.curlyLabel.Say("Alright then, later it is.");
-        yield return new WaitForSeconds(3f);
+        DialogueLabel.curlyLabel.Say("Hey Zo...");
+        yield return new WaitUntil(() => !DialogueLabel.curlyLabel.IsDisplaying());
+        yield return new WaitForSeconds(0.3f);
+        DialogueLabel.curlyLabel.Say("What would you do if someone asked you to check yourself out?");
+        yield return new WaitUntil(() => !DialogueLabel.curlyLabel.IsDisplaying());
+        yield return new WaitForSeconds(0.3f);
+        DialogueLabel.zoeyLabel.Say("I'd tell them to mind their business.");
+        yield return new WaitUntil(() => !DialogueLabel.zoeyLabel.IsDisplaying());
+        yield return new WaitForSeconds(0.3f);
+        DialogueLabel.curlyLabel.Say("Fair.");
+        yield return new WaitUntil(() => !DialogueLabel.curlyLabel.IsDisplaying());
+        yield return new WaitForSeconds(0.3f);
         zoeyAI.isPaused = false;
     }
 }
