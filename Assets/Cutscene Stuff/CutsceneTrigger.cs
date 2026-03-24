@@ -13,7 +13,7 @@ public class CutsceneTrigger : MonoBehaviour
     public bool oneShot = true;
 
     // Persists across scene loads for the whole session
-    private static HashSet<string> playedCutscenes = new HashSet<string>();
+    public static HashSet<string> playedCutscenes = new HashSet<string>();
 
     void Start()
     {

@@ -112,6 +112,12 @@ public class SaveManager : MonoBehaviour
             PlayerPrefs.SetInt("InteractableActive" + i, allInteractables[i].gameObject.activeSelf ? 1 : 0);
         }
 
+        // Save played cutscenes so they don't replay on load
+        var playedCutscenes = new List<string>(CutsceneTrigger.playedCutscenes);
+        PlayerPrefs.SetInt("PlayedCutsceneCount", playedCutscenes.Count);
+        for (int i = 0; i < playedCutscenes.Count; i++)
+            PlayerPrefs.SetString("PlayedCutscene" + i, playedCutscenes[i]);
+
         PlayerPrefs.Save();
 
         if (Random.Range(0, 100) == 0)
@@ -204,6 +210,12 @@ public class SaveManager : MonoBehaviour
                     interactable.gameObject.SetActive(active == 1);
             }
         }
+
+        // Restore played cutscenes so they don't replay
+        CutsceneTrigger.playedCutscenes.Clear();
+        int playedCutsceneCount = PlayerPrefs.GetInt("PlayedCutsceneCount", 0);
+        for (int i = 0; i < playedCutsceneCount; i++)
+            CutsceneTrigger.playedCutscenes.Add(PlayerPrefs.GetString("PlayedCutscene" + i));
 
         if (Random.Range(0, 100) == 0)
             StartCoroutine(LoadDialogue());

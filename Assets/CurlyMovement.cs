@@ -35,6 +35,11 @@ public class CurlyMovement : MonoBehaviour
     {
         seeker = GetComponent<Seeker>();
         rb = GetComponent<Rigidbody2D>();
+
+        // Set correct scale immediately on spawn
+        float t = Mathf.InverseLerp(topY, bottomY, transform.position.y);
+        float initialScale = Mathf.Lerp(minScale, maxScale, t);
+        transform.localScale = new Vector3(initialScale, initialScale, 1f);
     }
 
     private bool IsPointerOverUI()

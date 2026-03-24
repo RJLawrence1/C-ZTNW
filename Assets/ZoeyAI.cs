@@ -44,6 +44,11 @@ public class ZoeyAI : MonoBehaviour
         seeker = GetComponent<Seeker>();
         currentMoveSpeed = moveSpeed;
         StartWait();
+
+        // Set correct scale immediately on spawn
+        float t = Mathf.InverseLerp(topY, bottomY, transform.position.y);
+        float initialScale = Mathf.Lerp(minScale, maxScale, t);
+        transform.localScale = new Vector3(initialScale, initialScale, 1f);
     }
 
     void Update()
