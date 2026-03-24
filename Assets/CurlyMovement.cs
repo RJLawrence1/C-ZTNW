@@ -255,7 +255,7 @@ public class CurlyMovement : MonoBehaviour
         if (animator != null)
         {
             Vector2 delta = (transform.position - lastPosition);
-            animator.SetMoving(delta);
+            animator.SetMoving(delta, isSprinting);
         }
         lastPosition = transform.position;
     }

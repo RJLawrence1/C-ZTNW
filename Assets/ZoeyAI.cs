@@ -297,7 +297,7 @@ public class ZoeyAI : MonoBehaviour
         if (characterAnimator != null)
         {
             Vector2 delta = (transform.position - lastPosition);
-            characterAnimator.SetMoving(delta);
+            characterAnimator.SetMoving(delta, isHustling);
         }
         lastPosition = transform.position;
     }

@@ -2,11 +2,14 @@ using UnityEngine;
 
 public class CharacterAnimator : MonoBehaviour
 {
-    public enum AnimState { Idle, Walk, Talk }
+    public enum AnimState { Idle, Walk, Run, Talk }
 
     [Header("Spritesheets")]
     [Tooltip("8 directions x 6 frames — row order: Down, DownRight, Right, UpRight, Up, UpLeft, Left, DownLeft")]
     public Sprite[] walkFrames;   // 48 frames total
+
+    [Tooltip("8 directions x 6 frames")]
+    public Sprite[] runFrames;    // 48 frames total
 
     [Tooltip("8 directions x 2 frames")]
     public Sprite[] idleFrames;   // 16 frames total
@@ -16,11 +19,13 @@ public class CharacterAnimator : MonoBehaviour
 
     [Header("Animation Settings")]
     public float walkFPS = 8f;
+    public float runFPS = 12f;
     public float idleFPS = 4f;
     public float talkFPS = 6f;
 
     // Frame counts per direction
     private const int WALK_FRAMES = 6;
+    private const int RUN_FRAMES = 6;
     private const int IDLE_FRAMES = 2;
     private const int TALK_FRAMES = 4;
     private const int DIRECTIONS = 8;
@@ -53,17 +58,17 @@ public class CharacterAnimator : MonoBehaviour
         ApplySprite();
     }
 
-    // Called every frame by CurlyMovement or ZoeyAI with the current movement delta
-    public void SetMoving(Vector2 moveDelta)
+    // Called every frame by CurlyMovement or ZoeyAI with the current movement delta and sprint state
+    public void SetMoving(Vector2 moveDelta, bool isSprinting = false)
     {
         if (moveDelta.magnitude > 0.01f)
         {
-            SetState(AnimState.Walk);
+            SetState(isSprinting ? AnimState.Run : AnimState.Walk);
             currentDirection = VectorToDirection(moveDelta);
         }
         else
         {
-            if (currentState == AnimState.Walk)
+            if (currentState == AnimState.Walk || currentState == AnimState.Run)
                 SetState(AnimState.Idle);
         }
     }
@@ -121,6 +126,7 @@ public class CharacterAnimator : MonoBehaviour
         switch (currentState)
         {
             case AnimState.Walk: return walkFrames;
+            case AnimState.Run: return runFrames;
             case AnimState.Idle: return idleFrames;
             case AnimState.Talk: return talkFrames;
             default: return idleFrames;
@@ -132,6 +138,7 @@ public class CharacterAnimator : MonoBehaviour
         switch (currentState)
         {
             case AnimState.Walk: return WALK_FRAMES;
+            case AnimState.Run: return RUN_FRAMES;
             case AnimState.Idle: return IDLE_FRAMES;
             case AnimState.Talk: return TALK_FRAMES;
             default: return IDLE_FRAMES;
@@ -143,6 +150,7 @@ public class CharacterAnimator : MonoBehaviour
         switch (currentState)
         {
             case AnimState.Walk: return walkFPS;
+            case AnimState.Run: return runFPS;
             case AnimState.Idle: return idleFPS;
             case AnimState.Talk: return talkFPS;
             default: return idleFPS;
@@ -155,11 +163,7 @@ public class CharacterAnimator : MonoBehaviour
     {
         float angle = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg;
 
-        // Normalize to 0-360
         if (angle < 0) angle += 360f;
-
-        // 8 slices of 45 degrees each, offset so Down is centered at 270
-        // Right=0, UpRight=45, Up=90, UpLeft=135, Left=180, DownLeft=225, Down=270, DownRight=315
 
         if (angle >= 337.5f || angle < 22.5f) return 2; // Right
         if (angle >= 22.5f && angle < 67.5f) return 3; // UpRight
