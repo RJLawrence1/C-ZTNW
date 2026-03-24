@@ -21,6 +21,9 @@ public class CurlyMovement : MonoBehaviour
 
     public PolygonCollider2D walkableArea;
 
+    // Set to true during cutscenes to block all player input
+    public bool inputLocked = false;
+
     private Seeker seeker;
     private Rigidbody2D rb;
     private List<Vector3> path = new List<Vector3>();
@@ -71,6 +74,13 @@ public class CurlyMovement : MonoBehaviour
         MoveToPosition(target.transform.position);
     }
 
+    // Used by cutscene system to move Curly to a world position
+    public void WalkToPosition(Vector3 destination)
+    {
+        pendingInteractable = null;
+        MoveToPosition(destination);
+    }
+
     void OnPathComplete(Path p)
     {
         if (!p.error)
@@ -90,6 +100,7 @@ public class CurlyMovement : MonoBehaviour
 
     void Update()
     {
+        if (inputLocked) return;
         if (SettingsMenu.isOpen) return;
         if (InventoryManager.instance.isOpen) return;
         if (PhoneBoothUI.isInPhoneBooth) return;

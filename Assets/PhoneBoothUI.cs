@@ -11,6 +11,9 @@ public class PhoneBoothUI : MonoBehaviour
     public static bool isInPhoneBooth = false;
     public static string currentEra = "1987";
 
+    // Set to true before a time travel scene load — tells Start() to spawn at the booth
+    public static bool arrivedViaTimeTravel = false;
+
     public GameObject phoneBoothPanel;
     public TextMeshProUGUI phoneDisplay;
 
@@ -79,21 +82,26 @@ public class PhoneBoothUI : MonoBehaviour
         SetupButtons();
         UpdateDisplay();
 
-        // Teleport Curly and Zoey to their spawn points next to the booth
-        PhoneBooth booth = FindObjectOfType<PhoneBooth>();
-        if (booth != null)
+        // Only teleport to booth spawn if we arrived via time travel
+        if (arrivedViaTimeTravel)
         {
-            Transform curlySpawn = booth.transform.Find("CurlySpawn");
-            Transform zoeySpawn = booth.transform.Find("ZoeySpawn");
+            arrivedViaTimeTravel = false;
 
-            CurlyMovement curly = FindObjectOfType<CurlyMovement>();
-            ZoeyAI zoey = FindObjectOfType<ZoeyAI>();
+            PhoneBooth booth = FindObjectOfType<PhoneBooth>();
+            if (booth != null)
+            {
+                Transform curlySpawn = booth.transform.Find("CurlySpawn");
+                Transform zoeySpawn = booth.transform.Find("ZoeySpawn");
 
-            if (curlySpawn != null && curly != null)
-                curly.transform.position = curlySpawn.position;
+                CurlyMovement curly = FindObjectOfType<CurlyMovement>();
+                ZoeyAI zoey = FindObjectOfType<ZoeyAI>();
 
-            if (zoeySpawn != null && zoey != null)
-                zoey.transform.position = zoeySpawn.position;
+                if (curlySpawn != null && curly != null)
+                    curly.transform.position = curlySpawn.position;
+
+                if (zoeySpawn != null && zoey != null)
+                    zoey.transform.position = zoeySpawn.position;
+            }
         }
     }
 
@@ -386,6 +394,7 @@ public class PhoneBoothUI : MonoBehaviour
         yield return new WaitForSeconds(0.5f);
 
         currentEra = era;
+        arrivedViaTimeTravel = true;
 
         switch (era)
         {
