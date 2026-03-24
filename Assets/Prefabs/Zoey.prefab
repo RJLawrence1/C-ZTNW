@@ -63,7 +63,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 8992862708511207669, guid: 8942cdd40b77c964c902570c50fefb75, type: 2}
+  - {fileID: 2100000, guid: 7c4bca3d96a68d84e84011261752b817, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -110,7 +110,7 @@ MonoBehaviour:
   m_text: 
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8942cdd40b77c964c902570c50fefb75, type: 2}
-  m_sharedMaterial: {fileID: 8992862708511207669, guid: 8942cdd40b77c964c902570c50fefb75, type: 2}
+  m_sharedMaterial: {fileID: 2100000, guid: 7c4bca3d96a68d84e84011261752b817, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -200,6 +200,7 @@ MonoBehaviour:
   isZoey: 1
   isNPC: 0
   offset: {x: 0, y: 0.5, z: 0}
+  skipEnabled: 1
 --- !u!1 &7666272227566593647
 GameObject:
   m_ObjectHideFlags: 0
@@ -215,6 +216,7 @@ GameObject:
   - component: {fileID: 5741625767744945246}
   - component: {fileID: 7027817076785656992}
   - component: {fileID: 5006074732126874319}
+  - component: {fileID: 5986707540066100762}
   m_Layer: 6
   m_Name: Zoey
   m_TagString: Untagged
@@ -310,8 +312,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ZoeyAI
   moveSpeed: 2.5
+  hustleSpeed: 6
   walkableArea: {fileID: 0}
   curly: {fileID: 0}
+  zoeyReturnPoint: {fileID: 0}
   waitTimeMin: 2
   waitTimeMax: 5
   returnDistance: 5
@@ -322,6 +326,7 @@ MonoBehaviour:
   bottomY: -2
   minScale: 0.5
   maxScale: 1
+  hasArrived: 0
 --- !u!114 &6603612895816982330
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -425,3 +430,21 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 85a5275123d917a4aa9bc116e2352ffe, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ZoeyInteractable
+--- !u!114 &5986707540066100762
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7666272227566593647}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 50714996c3095d8469dda878249a90d9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CharacterAnimator
+  walkFrames: []
+  idleFrames: []
+  talkFrames: []
+  walkFPS: 8
+  idleFPS: 4
+  talkFPS: 6

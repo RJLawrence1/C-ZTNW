@@ -32,6 +32,13 @@ public class DialogueLabel : MonoBehaviour
     // Set to false before Say() to prevent skipping entirely — e.g. during pickup sequences
     public bool skipEnabled = true;
 
+    // Set this before a conversation so dialogue labels know where the NPC is
+    public static Transform currentNPCTransform = null;
+
+    // Cached animator references
+    private static CharacterAnimator curlyAnimator = null;
+    private static CharacterAnimator zoeyAnimator = null;
+
     void Awake()
     {
         if (isNPC)
@@ -59,6 +66,12 @@ public class DialogueLabel : MonoBehaviour
         dialogueText.color = dialogueColor;
         dialogueText.text = "";
         followTarget = isNPC ? null : transform.parent;
+
+        // Cache animator references
+        if (!isNPC && !isZoey && followTarget != null)
+            curlyAnimator = followTarget.GetComponent<CharacterAnimator>();
+        else if (isZoey && followTarget != null)
+            zoeyAnimator = followTarget.GetComponent<CharacterAnimator>();
     }
 
     void Update()
@@ -77,6 +90,7 @@ public class DialogueLabel : MonoBehaviour
             {
                 isLocked = false;
                 dialogueText.text = "";
+                OnLineEnd();
             }
         }
 
@@ -90,6 +104,24 @@ public class DialogueLabel : MonoBehaviour
         else if (isNPC && timer > 0f)
         {
             transform.position = ClampToScreen(staticWorldPos + offset);
+        }
+    }
+
+    // Called when a line finishes — return characters to idle
+    void OnLineEnd()
+    {
+        if (!isNPC && !isZoey && curlyAnimator != null)
+            curlyAnimator.SetIdle();
+        else if (isZoey && zoeyAnimator != null)
+            zoeyAnimator.SetIdle();
+        else if (isNPC)
+        {
+            // NPC animator is on the currentNPCTransform
+            if (currentNPCTransform != null)
+            {
+                CharacterAnimator npcAnim = currentNPCTransform.GetComponent<CharacterAnimator>();
+                if (npcAnim != null) npcAnim.SetIdle();
+            }
         }
     }
 
@@ -109,6 +141,7 @@ public class DialogueLabel : MonoBehaviour
         timer = 0f;
         isLocked = false;
         dialogueText.text = "";
+        OnLineEnd();
     }
 
     Vector3 ClampToScreen(Vector3 worldPos)
@@ -140,6 +173,22 @@ public class DialogueLabel : MonoBehaviour
         {
             isLocked = false;
         }
+
+        // Trigger talk animation
+        if (!isNPC && !isZoey && curlyAnimator != null && currentNPCTransform != null)
+        {
+            // Curly talks — face NPC, NPC faces Curly
+            curlyAnimator.SetTalking(currentNPCTransform.position);
+            CharacterAnimator npcAnim = currentNPCTransform.GetComponent<CharacterAnimator>();
+            if (npcAnim != null) npcAnim.FaceToward(followTarget.position);
+        }
+        else if (isZoey && zoeyAnimator != null && currentNPCTransform != null)
+        {
+            // Zoey talks — face NPC, NPC faces Zoey
+            zoeyAnimator.SetTalking(currentNPCTransform.position);
+            CharacterAnimator npcAnim = currentNPCTransform.GetComponent<CharacterAnimator>();
+            if (npcAnim != null) npcAnim.FaceToward(followTarget.position);
+        }
     }
 
     public void SayAtPosition(string line, Vector3 worldPos)
@@ -157,6 +206,17 @@ public class DialogueLabel : MonoBehaviour
         else
         {
             isLocked = false;
+        }
+
+        // NPC talks — NPC faces Curly, Curly faces NPC
+        if (isNPC && currentNPCTransform != null)
+        {
+            CharacterAnimator npcAnim = currentNPCTransform.GetComponent<CharacterAnimator>();
+            if (npcAnim != null && curlyAnimator != null)
+            {
+                npcAnim.SetTalking(curlyAnimator.transform.position);
+                curlyAnimator.FaceToward(currentNPCTransform.position);
+            }
         }
     }
 

@@ -31,10 +31,16 @@ public class CurlyMovement : MonoBehaviour
     private bool isMoving = false;
     private IInteractable pendingInteractable = null;
 
+    // Animation
+    private CharacterAnimator animator;
+    private Vector3 lastPosition;
+
     void Start()
     {
         seeker = GetComponent<Seeker>();
         rb = GetComponent<Rigidbody2D>();
+        animator = GetComponent<CharacterAnimator>();
+        lastPosition = transform.position;
 
         // Set correct scale immediately on spawn
         float t = Mathf.InverseLerp(topY, bottomY, transform.position.y);
@@ -244,5 +250,13 @@ public class CurlyMovement : MonoBehaviour
         float t = Mathf.InverseLerp(topY, bottomY, transform.position.y);
         float newScale = Mathf.Lerp(minScale, maxScale, t);
         transform.localScale = new Vector3(newScale, newScale, 1f);
+
+        // Feed movement delta to animator
+        if (animator != null)
+        {
+            Vector2 delta = (transform.position - lastPosition);
+            animator.SetMoving(delta);
+        }
+        lastPosition = transform.position;
     }
 }

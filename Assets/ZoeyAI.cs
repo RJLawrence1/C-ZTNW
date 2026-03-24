@@ -39,10 +39,16 @@ public class ZoeyAI : MonoBehaviour
     private bool isWaiting = false;
     private IInteractable pendingInteractable = null;
 
+    // Animation
+    private CharacterAnimator characterAnimator;
+    private Vector3 lastPosition;
+
     void Start()
     {
         seeker = GetComponent<Seeker>();
         currentMoveSpeed = moveSpeed;
+        characterAnimator = GetComponent<CharacterAnimator>();
+        lastPosition = transform.position;
         StartWait();
 
         // Set correct scale immediately on spawn
@@ -286,6 +292,14 @@ public class ZoeyAI : MonoBehaviour
         float t = Mathf.InverseLerp(topY, bottomY, transform.position.y);
         float newScale = Mathf.Lerp(minScale, maxScale, t);
         transform.localScale = new Vector3(newScale, newScale, 1f);
+
+        // Feed movement delta to animator
+        if (characterAnimator != null)
+        {
+            Vector2 delta = (transform.position - lastPosition);
+            characterAnimator.SetMoving(delta);
+        }
+        lastPosition = transform.position;
     }
 
     void PickNextDestination()

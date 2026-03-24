@@ -7,18 +7,27 @@ public class NPCDialogue : MonoBehaviour
     [System.Serializable]
     public class DialogueLine
     {
-        public string curlyLine;   // What Curly says
-        public string npcLine;     // What the NPC responds
+        public string curlyLine;
+        public string npcLine;
     }
+
+    public enum ReturnBehavior { ReturnToParent, ReturnToRoot, EndConversation }
 
     [System.Serializable]
     public class DialogueTopic
     {
-        public string topicLabel;          // What shows in the choice panel e.g. "How's it going?"
-        public bool rotate = true;         // Rotate through lines or just repeat the last one
-        public DialogueLine[] lines;       // One or more line pairs for this topic
+        public string topicLabel;           // What shows in the choice panel
+        public bool rotate = true;          // Rotate through lines or repeat the last one
+        public bool oneShot = false;        // If true, disappears after being selected once
+        public DialogueLine[] lines;        // One or more line pairs
+
+        [Tooltip("Topics that appear after this one is selected. Leave empty to use return behavior.")]
+        public DialogueTopic[] childTopics; // Sub-topics that appear after this plays
+
+        public ReturnBehavior returnBehavior = ReturnBehavior.ReturnToParent;
 
         [HideInInspector] public int currentLine = 0;
+        [HideInInspector] public bool hasBeenSelected = false;
 
         public DialogueLine GetCurrentLine()
         {
@@ -32,6 +41,11 @@ public class NPCDialogue : MonoBehaviour
             if (rotate && currentLine < lines.Length - 1)
                 currentLine++;
         }
+
+        public bool HasChildren()
+        {
+            return childTopics != null && childTopics.Length > 0;
+        }
     }
 
     // Gender options for auto-generating wrong item lines
@@ -40,6 +54,8 @@ public class NPCDialogue : MonoBehaviour
     [Header("NPC Settings")]
     public string npcName = "NPC";
     public NPCGender gender = NPCGender.Ambiguous;
+
+    [Tooltip("Root level topics — the first choices the player sees")]
     public DialogueTopic[] topics;
 
     [Header("Goodbye Line")]
@@ -64,56 +80,63 @@ public class NPCDialogue : MonoBehaviour
     // Set to true once the trade is completed so it can't be done again
     [HideInInspector] public bool tradeCompleted = false;
 
-    // Which topics are currently visible — lets you unlock topics mid-game
-    public bool[] topicUnlocked;
-
     private bool isTalking = false;
 
-    void Start()
-    {
-        // Default all topics to unlocked
-        if (topicUnlocked == null || topicUnlocked.Length != topics.Length)
-        {
-            topicUnlocked = new bool[topics.Length];
-            for (int i = 0; i < topicUnlocked.Length; i++)
-                topicUnlocked[i] = true;
-        }
-    }
+    // Stack of topic lists — lets us go back up the tree
+    private Stack<DialogueTopic[]> topicStack = new Stack<DialogueTopic[]>();
 
     public void StartConversation()
     {
         if (isTalking) return;
         isTalking = true;
-        ShowTopics();
+        topicStack.Clear();
+
+        // Tell DialogueLabel where this NPC is so animations work
+        DialogueLabel.currentNPCTransform = transform;
+
+        ShowTopics(topics);
     }
 
-    void ShowTopics()
+    void ShowTopics(DialogueTopic[] currentTopics)
     {
         List<string> options = new List<string>();
         List<System.Action> actions = new List<System.Action>();
 
-        for (int i = 0; i < topics.Length; i++)
+        foreach (DialogueTopic topic in currentTopics)
         {
-            if (!topicUnlocked[i]) continue;
-            int captured = i;
-            options.Add(topics[i].topicLabel);
-            actions.Add(() => SelectTopic(captured));
+            // Skip one-shot topics that have already been selected
+            if (topic.oneShot && topic.hasBeenSelected) continue;
+
+            DialogueTopic captured = topic;
+            options.Add(topic.topicLabel);
+            actions.Add(() => SelectTopic(captured, currentTopics));
         }
 
-        options.Add("Goodbye.");
-        actions.Add(() => StartCoroutine(SayGoodbye()));
+        // Add Back option if we're in a sub-branch
+        if (topicStack.Count > 0)
+        {
+            options.Add("Back.");
+            actions.Add(() => GoBack());
+        }
+
+        // Always add Goodbye at root level
+        if (topicStack.Count == 0)
+        {
+            options.Add("Goodbye.");
+            actions.Add(() => StartCoroutine(SayGoodbye()));
+        }
 
         DialogueManager.instance.ShowDialogue(options.ToArray(), actions.ToArray());
     }
 
-    void SelectTopic(int index)
+    void SelectTopic(DialogueTopic topic, DialogueTopic[] currentTopics)
     {
-        StartCoroutine(PlayTopic(index));
+        topic.hasBeenSelected = true;
+        StartCoroutine(PlayTopic(topic, currentTopics));
     }
 
-    IEnumerator PlayTopic(int index)
+    IEnumerator PlayTopic(DialogueTopic topic, DialogueTopic[] currentTopics)
     {
-        DialogueTopic topic = topics[index];
         DialogueLine line = topic.GetCurrentLine();
         if (line == null) yield break;
 
@@ -141,7 +164,42 @@ public class NPCDialogue : MonoBehaviour
         yield return new WaitForSeconds(0.3f);
 
         topic.Advance();
-        ShowTopics();
+
+        // If this topic has children, push current level and show children
+        if (topic.HasChildren())
+        {
+            topicStack.Push(currentTopics);
+            ShowTopics(topic.childTopics);
+            yield break;
+        }
+
+        // No children — use return behavior
+        switch (topic.returnBehavior)
+        {
+            case ReturnBehavior.ReturnToParent:
+                if (topicStack.Count > 0)
+                    ShowTopics(topicStack.Pop());
+                else
+                    ShowTopics(topics);
+                break;
+
+            case ReturnBehavior.ReturnToRoot:
+                topicStack.Clear();
+                ShowTopics(topics);
+                break;
+
+            case ReturnBehavior.EndConversation:
+                StartCoroutine(SayGoodbye());
+                break;
+        }
+    }
+
+    void GoBack()
+    {
+        if (topicStack.Count > 0)
+            ShowTopics(topicStack.Pop());
+        else
+            ShowTopics(topics);
     }
 
     IEnumerator SayGoodbye()
@@ -164,34 +222,32 @@ public class NPCDialogue : MonoBehaviour
         yield return new WaitForSeconds(0.3f);
 
         isTalking = false;
+        topicStack.Clear();
         DialogueManager.instance.HideDialogue();
+        DialogueLabel.currentNPCTransform = null;
     }
 
     // Called from Interactable when the player uses an item on this NPC
     public void TryTradeItem(string usedItemName)
     {
-        // No trade set up on this NPC — fall through to generic wrong item line
         if (string.IsNullOrEmpty(requiredItemName))
         {
             StartCoroutine(SayWrongItem());
             return;
         }
 
-        // Trade already done
         if (tradeCompleted)
         {
             StartCoroutine(SayWrongItem());
             return;
         }
 
-        // Wrong item
         if (usedItemName != requiredItemName)
         {
             StartCoroutine(SayWrongItem());
             return;
         }
 
-        // Correct item — do the trade
         StartCoroutine(CompleteTrade());
     }
 
@@ -199,10 +255,8 @@ public class NPCDialogue : MonoBehaviour
     {
         tradeCompleted = true;
 
-        // Consume the required item from inventory
         InventoryManager.instance.RemoveItem(requiredItemName);
 
-        // Play the trade complete line
         if (!string.IsNullOrEmpty(tradeCompleteLine))
         {
             DialogueLabel.ShowNPCLine(npcName, tradeCompleteLine, transform.position);
@@ -211,7 +265,6 @@ public class NPCDialogue : MonoBehaviour
 
         yield return new WaitForSeconds(0.3f);
 
-        // Give reward item if one is set
         if (!string.IsNullOrEmpty(rewardItemName))
         {
             InventoryManager.instance.AddItem(rewardItemName, rewardItemSprite, rewardItemColor);
@@ -222,22 +275,15 @@ public class NPCDialogue : MonoBehaviour
 
     IEnumerator SayWrongItem()
     {
-        // Use custom wrong item line if set, otherwise auto-generate from gender
         string line = wrongItemLine;
 
         if (string.IsNullOrEmpty(line))
         {
             switch (gender)
             {
-                case NPCGender.Male:
-                    line = "He doesn't need that.";
-                    break;
-                case NPCGender.Female:
-                    line = "She doesn't need that.";
-                    break;
-                case NPCGender.Ambiguous:
-                    line = "They don't need that.";
-                    break;
+                case NPCGender.Male: line = "He doesn't need that."; break;
+                case NPCGender.Female: line = "She doesn't need that."; break;
+                case NPCGender.Ambiguous: line = "They don't need that."; break;
             }
         }
 
@@ -245,17 +291,17 @@ public class NPCDialogue : MonoBehaviour
         yield return new WaitUntil(() => !DialogueLabel.curlyLabel.IsDisplaying());
     }
 
-    // Call this from code to unlock a topic mid-game
+    // Call from code to unlock a root topic
     public void UnlockTopic(int index)
     {
-        if (index >= 0 && index < topicUnlocked.Length)
-            topicUnlocked[index] = true;
+        if (index >= 0 && index < topics.Length)
+            topics[index].hasBeenSelected = false;
     }
 
-    // Call this to lock a topic — e.g. after it's been resolved
+    // Call from code to lock a root topic
     public void LockTopic(int index)
     {
-        if (index >= 0 && index < topicUnlocked.Length)
-            topicUnlocked[index] = false;
+        if (index >= 0 && index < topics.Length)
+            topics[index].hasBeenSelected = true;
     }
 }
