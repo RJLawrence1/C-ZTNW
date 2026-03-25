@@ -62,6 +62,8 @@ public class PhoneBoothUI : MonoBehaviour
         "Yeah, I'm not going anywhere.",
         "...Did I just try to travel to right now?"
     };
+    [Header("Same Era Clips")]
+    public AudioClip[] sameEraClips = new AudioClip[5];
 
     private string[] callOverLines = {
         "Zoey, get your ass over here.",
@@ -70,6 +72,24 @@ public class PhoneBoothUI : MonoBehaviour
         "Hey, Zo, move it!",
         "Zoey, quit wandering, we're leaving."
     };
+    [Header("Call Over Clips")]
+    public AudioClip[] callOverClips = new AudioClip[5];
+
+    [Header("Easter Egg Clips")]
+    public AudioClip teleportClip;
+    public AudioClip bttf1955_Clip;
+    public AudioClip bttf1985_Curly1;
+    public AudioClip bttf1985_Zoey;
+    public AudioClip bttf1985_Curly2;
+    public AudioClip bttf1985_Curly3;
+    public AudioClip bttf2015_Clip;
+    public AudioClip billTed_Clip;
+    public AudioClip samMax_Curly1;
+    public AudioClip samMax_Curly2;
+    public AudioClip samMax_Zoey;
+    public AudioClip samMax_Curly3;
+    public AudioClip birthday_Clip;
+    public AudioClip invalidNumber_Clip;
 
     void Awake()
     {
@@ -154,6 +174,11 @@ public class PhoneBoothUI : MonoBehaviour
         dialedNumber = "";
         UpdateDisplay();
         phoneBoothPanel.SetActive(true);
+
+        // Duck background music while in the booth
+        if (MusicManager.instance != null)
+            MusicManager.instance.SetVolume(0.2f);
+
         StartCoroutine(PickupSequence());
     }
 
@@ -182,6 +207,10 @@ public class PhoneBoothUI : MonoBehaviour
 
         if (hangupClip != null)
             audioSource.PlayOneShot(hangupClip);
+
+        // Restore background music volume
+        if (MusicManager.instance != null)
+            MusicManager.instance.SetVolume(1f);
 
         phoneBoothPanel.SetActive(false);
         if (currentBooth != null)
@@ -355,9 +384,11 @@ public class PhoneBoothUI : MonoBehaviour
     IEnumerator SameEra()
     {
         Hide();
-        DialogueLabel.curlyLabel.Say(sameEraLines[sameEraCount % sameEraLines.Length]);
+        int index = sameEraCount % sameEraLines.Length;
+        AudioClip clip = (sameEraClips != null && index < sameEraClips.Length) ? sameEraClips[index] : null;
+        DialogueLabel.curlyLabel.Say(sameEraLines[index], clip);
         sameEraCount++;
-        yield return new WaitForSeconds(3f);
+        yield return new WaitUntil(() => !DialogueLabel.curlyLabel.IsDisplaying());
     }
 
     IEnumerator TimeTravel(string era)
@@ -374,9 +405,11 @@ public class PhoneBoothUI : MonoBehaviour
             Vector3 destination = zoeySpawn != null ? zoeySpawn.position : currentBooth.transform.position;
 
             // Curly calls her over
-            DialogueLabel.curlyLabel.Say(callOverLines[callOverCount % callOverLines.Length]);
+            int callIndex = callOverCount % callOverLines.Length;
+            AudioClip callClip = (callOverClips != null && callIndex < callOverClips.Length) ? callOverClips[callIndex] : null;
+            DialogueLabel.curlyLabel.Say(callOverLines[callIndex], callClip);
             callOverCount++;
-            yield return new WaitForSeconds(2f);
+            yield return new WaitUntil(() => !DialogueLabel.curlyLabel.IsDisplaying());
 
             // Zoey hustles to the booth
             zoey.HustleTo(destination);
@@ -390,8 +423,21 @@ public class PhoneBoothUI : MonoBehaviour
             }
         }
 
-        // Small buffer before scene load
-        yield return new WaitForSeconds(0.5f);
+        // Fade to black and hold
+        if (SceneTransition.instance != null)
+            yield return StartCoroutine(SceneTransition.instance.FadeOutAndHold());
+
+        // Play teleport sound over the black screen
+        if (teleportClip != null)
+        {
+            audioSource.loop = false;
+            audioSource.PlayOneShot(teleportClip);
+            yield return new WaitForSeconds(teleportClip.length);
+        }
+        else
+        {
+            yield return new WaitForSeconds(0.5f);
+        }
 
         currentEra = era;
         arrivedViaTimeTravel = true;
@@ -413,48 +459,54 @@ public class PhoneBoothUI : MonoBehaviour
     IEnumerator BTTF1955()
     {
         Hide();
-        DialogueLabel.curlyLabel.Say("Think, McFly, Think!");
-        yield return new WaitForSeconds(3f);
+        DialogueLabel.curlyLabel.Say("Think, McFly, Think!", bttf1955_Clip);
+        yield return new WaitUntil(() => !DialogueLabel.curlyLabel.IsDisplaying());
     }
 
     IEnumerator BTTF1985()
     {
         Hide();
-        DialogueLabel.curlyLabel.Say("1.21 jigawatts...Great Scott.");
-        yield return new WaitForSeconds(3f);
-        DialogueLabel.zoeyLabel.Say("What the hell is a jigawatt anyway?");
-        yield return new WaitForSeconds(3f);
-        DialogueLabel.curlyLabel.Say("That's a really good question actually,");
-        yield return new WaitForSeconds(3f);
-        DialogueLabel.curlyLabel.Say("I'll have to look into it.");
-        yield return new WaitForSeconds(3f);
+        DialogueLabel.curlyLabel.Say("1.21 jigawatts...Great Scott.", bttf1985_Curly1);
+        yield return new WaitUntil(() => !DialogueLabel.curlyLabel.IsDisplaying());
+        yield return new WaitForSeconds(0.3f);
+        DialogueLabel.zoeyLabel.Say("What the hell is a jigawatt anyway?", bttf1985_Zoey);
+        yield return new WaitUntil(() => !DialogueLabel.zoeyLabel.IsDisplaying());
+        yield return new WaitForSeconds(0.3f);
+        DialogueLabel.curlyLabel.Say("That's a really good question actually,", bttf1985_Curly2);
+        yield return new WaitUntil(() => !DialogueLabel.curlyLabel.IsDisplaying());
+        yield return new WaitForSeconds(0.3f);
+        DialogueLabel.curlyLabel.Say("I'll have to look into it.", bttf1985_Curly3);
+        yield return new WaitUntil(() => !DialogueLabel.curlyLabel.IsDisplaying());
     }
 
     IEnumerator BTTF2015()
     {
         Hide();
-        DialogueLabel.curlyLabel.Say("Roads? Where we're going we don't need roads.");
-        yield return new WaitForSeconds(3f);
+        DialogueLabel.curlyLabel.Say("Roads? Where we're going we don't need roads.", bttf2015_Clip);
+        yield return new WaitUntil(() => !DialogueLabel.curlyLabel.IsDisplaying());
     }
 
     IEnumerator BillTed1989()
     {
         Hide();
-        DialogueLabel.curlyLabel.Say("Strange things are afoot in Bayfront.");
-        yield return new WaitForSeconds(3f);
+        DialogueLabel.curlyLabel.Say("Strange things are afoot in Bayfront.", billTed_Clip);
+        yield return new WaitUntil(() => !DialogueLabel.curlyLabel.IsDisplaying());
     }
 
     IEnumerator SamMax1993()
     {
         Hide();
-        DialogueLabel.curlyLabel.Say("You know, Max, I can't help but think that we have may have tampered with");
-        yield return new WaitForSeconds(3f);
-        DialogueLabel.curlyLabel.Say("the fragile inner workings of this little spaceship we call Earth.");
-        yield return new WaitForSeconds(3f);
-        DialogueLabel.zoeyLabel.Say("Who's Max?");
-        yield return new WaitForSeconds(3f);
-        DialogueLabel.curlyLabel.Say("Good question.");
-        yield return new WaitForSeconds(3f);
+        DialogueLabel.curlyLabel.Say("You know, Max, I can't help but think that we have may have tampered with", samMax_Curly1);
+        yield return new WaitUntil(() => !DialogueLabel.curlyLabel.IsDisplaying());
+        yield return new WaitForSeconds(0.3f);
+        DialogueLabel.curlyLabel.Say("the fragile inner workings of this little spaceship we call Earth.", samMax_Curly2);
+        yield return new WaitUntil(() => !DialogueLabel.curlyLabel.IsDisplaying());
+        yield return new WaitForSeconds(0.3f);
+        DialogueLabel.zoeyLabel.Say("Who's Max?", samMax_Zoey);
+        yield return new WaitUntil(() => !DialogueLabel.zoeyLabel.IsDisplaying());
+        yield return new WaitForSeconds(0.3f);
+        DialogueLabel.curlyLabel.Say("Good question.", samMax_Curly3);
+        yield return new WaitUntil(() => !DialogueLabel.curlyLabel.IsDisplaying());
     }
 
     IEnumerator BirthdayCall()
@@ -488,7 +540,8 @@ public class PhoneBoothUI : MonoBehaviour
             yield return new WaitForSeconds(5f);
 
         Hide();
-        DialogueLabel.curlyLabel.Say("...The hell...?");
+        DialogueLabel.curlyLabel.Say("...The hell...?", birthday_Clip);
+        yield return new WaitUntil(() => !DialogueLabel.curlyLabel.IsDisplaying());
     }
 
     IEnumerator InvalidNumber()
@@ -503,9 +556,9 @@ public class PhoneBoothUI : MonoBehaviour
             yield return new WaitForSeconds(3f);
 
         if (Random.Range(0, 50) == 0)
-            DialogueLabel.curlyLabel.Say("...fuck.");
+            DialogueLabel.curlyLabel.Say("...fuck.", invalidNumber_Clip);
         else
-            DialogueLabel.curlyLabel.Say("...");
+            DialogueLabel.curlyLabel.Say("...", invalidNumber_Clip);
 
         dialedNumber = "";
         UpdateDisplay();

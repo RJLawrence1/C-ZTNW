@@ -50,6 +50,10 @@ public class SceneTransition : MonoBehaviour
 
     IEnumerator FadeAndLoad(string sceneName)
     {
+        // Fade music out alongside the screen fade
+        if (MusicManager.instance != null)
+            MusicManager.instance.FadeOut();
+
         yield return StartCoroutine(FadeOut());
         SceneManager.LoadScene(sceneName);
     }
@@ -88,6 +92,15 @@ public class SceneTransition : MonoBehaviour
         }
 
         yield return StartCoroutine(FadeIn());
+    }
+
+    // Fades to black and stays black — used for time travel so a sound can play over it
+    public IEnumerator FadeOutAndHold()
+    {
+        if (MusicManager.instance != null)
+            MusicManager.instance.FadeOut();
+
+        yield return StartCoroutine(FadeOut());
     }
 
     IEnumerator FadeOut()

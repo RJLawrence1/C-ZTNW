@@ -31,12 +31,15 @@ public class Interactable : MonoBehaviour, IInteractable
     {
         public string itemName;
         [TextArea] public string response;
+        public AudioClip responseClip;
         public bool consumesItem = false;
     }
 
     [Header("Pickup Lines")]
     public string pickUpExamineLine = "Hm.";
+    public AudioClip pickUpExamineClip;
     public string pickUpLine = "Yeah. That's coming with me.";
+    public AudioClip pickUpLineClip;
 
     private int lookAtCount = 0;
     private int pickUpCount = 0;
@@ -61,6 +64,7 @@ public class Interactable : MonoBehaviour, IInteractable
         "You're really committed to this.",
         "I'm not looking anymore."
     };
+    public AudioClip[] lookAtFailClips = new AudioClip[5];
 
     private string[] pickUpFails = {
         "Not taking that.",
@@ -69,6 +73,7 @@ public class Interactable : MonoBehaviour, IInteractable
         "This isn't a conversation I'm going to win, is it.",
         "Fine. We're leaving it."
     };
+    public AudioClip[] pickUpFailClips = new AudioClip[5];
 
     private string[] useItemFails = {
         "That's not the move.",
@@ -77,6 +82,7 @@ public class Interactable : MonoBehaviour, IInteractable
         "Tried it. Nothing.",
         "..."
     };
+    public AudioClip[] useItemFailClips = new AudioClip[5];
 
     private string[] talkToFails = {
         "It's not talking.",
@@ -85,6 +91,7 @@ public class Interactable : MonoBehaviour, IInteractable
         "I'm not doing this anymore.",
         "We're done."
     };
+    public AudioClip[] talkToFailClips = new AudioClip[5];
 
     private string[] interactFails = {
         "Nothing.",
@@ -93,6 +100,7 @@ public class Interactable : MonoBehaviour, IInteractable
         "It's just sitting there.",
         "Alright. I'm out."
     };
+    public AudioClip[] interactFailClips = new AudioClip[5];
 
     private string[] useZoeyFails = {
         "Nope.",
@@ -101,6 +109,7 @@ public class Interactable : MonoBehaviour, IInteractable
         "I don't know what they think is gonna happen.",
         "I'm taking a walk. Don't follow me."
     };
+    public AudioClip[] useZoeyFailClips = new AudioClip[5];
 
     void Awake()
     {
@@ -186,10 +195,10 @@ public class Interactable : MonoBehaviour, IInteractable
     {
         DialogueLabel.curlyLabel.skipEnabled = false;
 
-        DialogueLabel.curlyLabel.Say(pickUpExamineLine);
-        yield return new WaitForSeconds(3f);
-        DialogueLabel.curlyLabel.Say(pickUpLine);
-        yield return new WaitForSeconds(3f);
+        DialogueLabel.curlyLabel.Say(pickUpExamineLine, pickUpExamineClip);
+        yield return new WaitUntil(() => !DialogueLabel.curlyLabel.IsDisplaying());
+        DialogueLabel.curlyLabel.Say(pickUpLine, pickUpLineClip);
+        yield return new WaitUntil(() => !DialogueLabel.curlyLabel.IsDisplaying());
 
         DialogueLabel.curlyLabel.skipEnabled = true;
 
@@ -201,14 +210,21 @@ public class Interactable : MonoBehaviour, IInteractable
         gameObject.SetActive(false);
     }
 
-    string GetFailLine(string[] lines, ref int count)
+    string GetFailLine(string[] lines, AudioClip[] clips, ref int count)
     {
-        string line = lines[Mathf.Min(count, lines.Length - 1)];
+        int index = Mathf.Min(count, lines.Length - 1);
         if (count >= lines.Length - 1)
             isLockedOut = true;
         else
             count++;
-        return line;
+        return lines[index];
+    }
+
+    AudioClip GetFailClip(AudioClip[] clips, int count)
+    {
+        int index = Mathf.Min(count - 1, clips.Length - 1);
+        if (index < 0 || clips == null || index >= clips.Length) return null;
+        return clips[index];
     }
 
     public void OnItemUsed(string usedItemName)
@@ -226,7 +242,7 @@ public class Interactable : MonoBehaviour, IInteractable
         {
             if (response.itemName == usedItemName)
             {
-                DialogueLabel.curlyLabel.Say(response.response);
+                DialogueLabel.curlyLabel.Say(response.response, response.responseClip);
                 if (response.consumesItem)
                     InventoryManager.instance.RemoveItem(usedItemName);
                 return;
@@ -248,25 +264,34 @@ public class Interactable : MonoBehaviour, IInteractable
                 if (canLookAt)
                     DialogueLabel.curlyLabel.Say("That's a " + itemName + ".");
                 else
-                    DialogueLabel.curlyLabel.Say(GetFailLine(lookAtFails, ref lookAtCount));
+                {
+                    int i = lookAtCount;
+                    string line = GetFailLine(lookAtFails, lookAtFailClips, ref lookAtCount);
+                    DialogueLabel.curlyLabel.Say(line, GetFailClip(lookAtFailClips, lookAtCount));
+                }
                 break;
             case VerbManager.Verb.PickUp:
                 if (canPickUp)
                     StartCoroutine(PickUpSequence());
                 else
-                    DialogueLabel.curlyLabel.Say(GetFailLine(pickUpFails, ref pickUpCount));
+                {
+                    string line = GetFailLine(pickUpFails, pickUpFailClips, ref pickUpCount);
+                    DialogueLabel.curlyLabel.Say(line, GetFailClip(pickUpFailClips, pickUpCount));
+                }
                 break;
             case VerbManager.Verb.UseItem:
                 if (canUseItem)
                 {
-                    // Check if a specific item is selected via the cursor
                     if (ItemCursor.hasSelectedItem)
                         OnItemUsed(ItemCursor.selectedItemName);
                     else
                         DialogueLabel.curlyLabel.Say("Use what.");
                 }
                 else
-                    DialogueLabel.curlyLabel.Say(GetFailLine(useItemFails, ref useItemCount));
+                {
+                    string line = GetFailLine(useItemFails, useItemFailClips, ref useItemCount);
+                    DialogueLabel.curlyLabel.Say(line, GetFailClip(useItemFailClips, useItemCount));
+                }
                 break;
             case VerbManager.Verb.TalkTo:
                 if (canTalkTo)
@@ -278,19 +303,28 @@ public class Interactable : MonoBehaviour, IInteractable
                         DialogueLabel.curlyLabel.Say("Hey.");
                 }
                 else
-                    DialogueLabel.curlyLabel.Say(GetFailLine(talkToFails, ref talkToCount));
+                {
+                    string line = GetFailLine(talkToFails, talkToFailClips, ref talkToCount);
+                    DialogueLabel.curlyLabel.Say(line, GetFailClip(talkToFailClips, talkToCount));
+                }
                 break;
             case VerbManager.Verb.Interact:
                 if (canInteract)
                     DialogueLabel.curlyLabel.Say("Alright.");
                 else
-                    DialogueLabel.curlyLabel.Say(GetFailLine(interactFails, ref interactCount));
+                {
+                    string line = GetFailLine(interactFails, interactFailClips, ref interactCount);
+                    DialogueLabel.curlyLabel.Say(line, GetFailClip(interactFailClips, interactCount));
+                }
                 break;
             case VerbManager.Verb.UseZoey:
                 if (canUseZoey)
                     DialogueLabel.zoeyLabel.Say("I'm already there.");
                 else
-                    DialogueLabel.zoeyLabel.Say(GetFailLine(useZoeyFails, ref useZoeyCount));
+                {
+                    string line = GetFailLine(useZoeyFails, useZoeyFailClips, ref useZoeyCount);
+                    DialogueLabel.zoeyLabel.Say(line, GetFailClip(useZoeyFailClips, useZoeyCount));
+                }
                 break;
             default:
                 DialogueLabel.curlyLabel.Say("Hm.");

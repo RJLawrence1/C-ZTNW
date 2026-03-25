@@ -17,6 +17,13 @@ public class SaveManager : MonoBehaviour
     // Drag your white square sprite here — used when a sprite can't be found on load
     public Sprite defaultItemSprite;
 
+    [Header("Save / Load Voice Clips")]
+    public AudioClip saveEasterEggClip;
+    public AudioClip loadDialogue_Curly1;
+    public AudioClip loadDialogue_Curly2;
+    public AudioClip loadDialogue_Zoey;
+    public AudioClip loadDialogue_Curly3;
+
     // Cached references
     private CurlyMovement curly;
     private ZoeyAI zoey;
@@ -121,7 +128,7 @@ public class SaveManager : MonoBehaviour
         PlayerPrefs.Save();
 
         if (Random.Range(0, 100) == 0)
-            DialogueLabel.curlyLabel.Say("...The hell?");
+            DialogueLabel.curlyLabel.Say("...The hell?", saveEasterEggClip);
 
         ShowNotification("Game Saved");
         Debug.Log("Game saved in scene: " + SceneManager.GetActiveScene().name + " | Era: " + PhoneBoothUI.currentEra);
@@ -257,12 +264,16 @@ public class SaveManager : MonoBehaviour
 
     IEnumerator LoadDialogue()
     {
-        DialogueLabel.curlyLabel.Say("I just had the strangest feeling...");
-        yield return new WaitForSeconds(3f);
-        DialogueLabel.curlyLabel.Say("like I was dropped into this exact spot from somewhere else entirely.");
-        yield return new WaitForSeconds(3f);
-        DialogueLabel.zoeyLabel.Say("What makes you think that?");
-        yield return new WaitForSeconds(3f);
-        DialogueLabel.curlyLabel.Say("No reason. Forget I said anything.");
+        DialogueLabel.curlyLabel.Say("I just had the strangest feeling...", loadDialogue_Curly1);
+        yield return new WaitUntil(() => !DialogueLabel.curlyLabel.IsDisplaying());
+        yield return new WaitForSeconds(0.3f);
+        DialogueLabel.curlyLabel.Say("like I was dropped into this exact spot from somewhere else entirely.", loadDialogue_Curly2);
+        yield return new WaitUntil(() => !DialogueLabel.curlyLabel.IsDisplaying());
+        yield return new WaitForSeconds(0.3f);
+        DialogueLabel.zoeyLabel.Say("What makes you think that?", loadDialogue_Zoey);
+        yield return new WaitUntil(() => !DialogueLabel.zoeyLabel.IsDisplaying());
+        yield return new WaitForSeconds(0.3f);
+        DialogueLabel.curlyLabel.Say("No reason. Forget I said anything.", loadDialogue_Curly3);
+        yield return new WaitUntil(() => !DialogueLabel.curlyLabel.IsDisplaying());
     }
 }

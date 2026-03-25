@@ -19,6 +19,9 @@ public class DialogueLabel : MonoBehaviour
     public bool isNPC = false;
     public Vector3 offset = new Vector3(0f, 0.5f, 0f);
 
+    // AudioSource for voice lines — attach one to the same GameObject
+    public AudioSource voiceSource;
+
     private float timer = 0f;
     private Transform followTarget;
     private Vector3 staticWorldPos; // For NPC labels that follow a world position
@@ -141,6 +144,8 @@ public class DialogueLabel : MonoBehaviour
         timer = 0f;
         isLocked = false;
         dialogueText.text = "";
+        if (voiceSource != null && voiceSource.isPlaying)
+            voiceSource.Stop();
         OnLineEnd();
     }
 
@@ -158,10 +163,22 @@ public class DialogueLabel : MonoBehaviour
         return worldPos;
     }
 
-    public void Say(string line)
+    public void Say(string line, AudioClip clip = null)
     {
         dialogueText.text = line;
-        timer = displayTime;
+
+        // If a voice clip is provided, use its length as the timer and play it
+        if (clip != null && voiceSource != null)
+        {
+            voiceSource.Stop();
+            voiceSource.clip = clip;
+            voiceSource.Play();
+            timer = clip.length;
+        }
+        else
+        {
+            timer = displayTime;
+        }
 
         // First time this line plays — lock it
         if (!seenLines.Contains(line))
@@ -177,25 +194,35 @@ public class DialogueLabel : MonoBehaviour
         // Trigger talk animation
         if (!isNPC && !isZoey && curlyAnimator != null && currentNPCTransform != null)
         {
-            // Curly talks — face NPC, NPC faces Curly
             curlyAnimator.SetTalking(currentNPCTransform.position);
             CharacterAnimator npcAnim = currentNPCTransform.GetComponent<CharacterAnimator>();
             if (npcAnim != null) npcAnim.FaceToward(followTarget.position);
         }
         else if (isZoey && zoeyAnimator != null && currentNPCTransform != null)
         {
-            // Zoey talks — face NPC, NPC faces Zoey
             zoeyAnimator.SetTalking(currentNPCTransform.position);
             CharacterAnimator npcAnim = currentNPCTransform.GetComponent<CharacterAnimator>();
             if (npcAnim != null) npcAnim.FaceToward(followTarget.position);
         }
     }
 
-    public void SayAtPosition(string line, Vector3 worldPos)
+    public void SayAtPosition(string line, Vector3 worldPos, AudioClip clip = null)
     {
         staticWorldPos = worldPos;
         dialogueText.text = line;
-        timer = displayTime;
+
+        // If a voice clip is provided, use its length as the timer and play it
+        if (clip != null && voiceSource != null)
+        {
+            voiceSource.Stop();
+            voiceSource.clip = clip;
+            voiceSource.Play();
+            timer = clip.length;
+        }
+        else
+        {
+            timer = displayTime;
+        }
 
         // First time this line plays — lock it
         if (!seenLines.Contains(line))
@@ -221,7 +248,7 @@ public class DialogueLabel : MonoBehaviour
     }
 
     // Static helper — shows an NPC line above a world position
-    public static void ShowNPCLine(string npcName, string line, Vector3 worldPos)
+    public static void ShowNPCLine(string npcName, string line, Vector3 worldPos, AudioClip clip = null)
     {
         if (npcLabel == null)
         {
@@ -229,7 +256,7 @@ public class DialogueLabel : MonoBehaviour
             return;
         }
         npcLabel.dialogueText.color = npcLabel.dialogueColor;
-        npcLabel.SayAtPosition(line, worldPos);
+        npcLabel.SayAtPosition(line, worldPos, clip);
     }
 
     public bool IsDisplaying()

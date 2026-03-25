@@ -2634,6 +2634,32 @@ MonoBehaviour:
   dialBeep9: {fileID: 8300000, guid: ef560cce3dcbc144ead4ce02c9f72cad, type: 3}
   dialBeepStar: {fileID: 8300000, guid: a38d1bd325bc1dd4da12c70bd88a3cfb, type: 3}
   dialBeepPound: {fileID: 8300000, guid: 1f4d8768c819a4b41a6ac7462bb34019, type: 3}
+  sameEraClips:
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  callOverClips:
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  teleportClip: {fileID: 8300000, guid: 23f52788b3601d240ae94b864a24b6af, type: 3}
+  bttf1955_Clip: {fileID: 0}
+  bttf1985_Curly1: {fileID: 0}
+  bttf1985_Zoey: {fileID: 0}
+  bttf1985_Curly2: {fileID: 0}
+  bttf1985_Curly3: {fileID: 0}
+  bttf2015_Clip: {fileID: 0}
+  billTed_Clip: {fileID: 0}
+  samMax_Curly1: {fileID: 0}
+  samMax_Curly2: {fileID: 0}
+  samMax_Zoey: {fileID: 0}
+  samMax_Curly3: {fileID: 0}
+  birthday_Clip: {fileID: 0}
+  invalidNumber_Clip: {fileID: 0}
 --- !u!82 &2954446975738710768
 AudioSource:
   m_ObjectHideFlags: 0

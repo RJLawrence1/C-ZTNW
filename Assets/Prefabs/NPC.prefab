@@ -14,6 +14,7 @@ GameObject:
   - component: {fileID: 646906488309624845}
   - component: {fileID: 2819354432139521057}
   - component: {fileID: 1599083533720160259}
+  - component: {fileID: 5934100976977297723}
   m_Layer: 6
   m_Name: NPC
   m_TagString: Untagged
@@ -115,14 +116,18 @@ MonoBehaviour:
     oneShot: 0
     lines:
     - curlyLine: So how's things?
+      curlyClip: {fileID: 0}
       npcLine: Oh you know, some old. The usual existential dread.
+      npcClip: {fileID: 0}
     childTopics:
     - topicLabel: Could be better, could be worse.
       rotate: 0
       oneShot: 0
       lines:
       - curlyLine: Could be better, could be worse.
+        curlyClip: {fileID: 0}
         npcLine: Yeah. That about covers it.
+        npcClip: {fileID: 0}
       childTopics: []
       returnBehavior: 0
       currentLine: 0
@@ -135,7 +140,9 @@ MonoBehaviour:
     oneShot: 0
     lines:
     - curlyLine: What exactly are you doing out here?
+      curlyClip: {fileID: 0}
       npcLine: Standing. Mostly just standing. It's kind of my thing.
+      npcClip: {fileID: 0}
     childTopics: []
     returnBehavior: 0
     currentLine: 0
@@ -145,7 +152,9 @@ MonoBehaviour:
     oneShot: 0
     lines:
     - curlyLine: You got any useful information or are you just scenery?
+      curlyClip: {fileID: 0}
       npcLine: Rude. But also yes, probably. Ask me again later.
+      npcClip: {fileID: 0}
     childTopics: []
     returnBehavior: 0
     currentLine: 0
@@ -155,19 +164,25 @@ MonoBehaviour:
     oneShot: 0
     lines:
     - curlyLine: Nice weather we're having.
+      curlyClip: {fileID: 0}
       npcLine: Is it? I hadn't noticed. I've been standing here for six hours.
+      npcClip: {fileID: 0}
     childTopics: []
     returnBehavior: 0
     currentLine: 0
     hasBeenSelected: 0
   curlyGoodbyeLine: See you around.
+  curlyGoodbyeClip: {fileID: 0}
   npcGoodbyeLine: Take care.
+  npcGoodbyeClip: {fileID: 0}
   requiredItemName: PickUpItem
   tradeCompleteLine: That'll do, thanks!
+  tradeCompleteClip: {fileID: 0}
   rewardItemName: NPCItemReward
   rewardItemSprite: {fileID: -5557909102646892444, guid: cabefc4699946634a842efb6882fcb6e, type: 3}
   rewardItemColor: {r: 1, g: 1, b: 1, a: 1}
   wrongItemLine: Not quite what I'm looking for.
+  wrongItemClip: {fileID: 0}
   tradeCompleted: 0
 --- !u!114 &646906488309624845
 MonoBehaviour:
@@ -190,7 +205,45 @@ MonoBehaviour:
   canUseZoey: 0
   itemResponses: []
   pickUpExamineLine: Hm, what's this?
+  pickUpExamineClip: {fileID: 0}
   pickUpLine: Yeah this could definitely come in handy.
+  pickUpLineClip: {fileID: 0}
+  lookAtFailClips:
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  pickUpFailClips:
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  useItemFailClips:
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  talkToFailClips:
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  interactFailClips:
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  useZoeyFailClips:
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
 --- !u!58 &2819354432139521057
 CircleCollider2D:
   m_ObjectHideFlags: 0
@@ -240,8 +293,107 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CharacterAnimator
   walkFrames: []
+  runFrames: []
   idleFrames: []
   talkFrames: []
   walkFPS: 8
+  runFPS: 12
   idleFPS: 4
   talkFPS: 6
+--- !u!82 &5934100976977297723
+AudioSource:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 713277382888582551}
+  m_Enabled: 1
+  serializedVersion: 4
+  OutputAudioMixerGroup: {fileID: 0}
+  m_audioClip: {fileID: 0}
+  m_Resource: {fileID: 0}
+  m_PlayOnAwake: 1
+  m_Volume: 1
+  m_Pitch: 1
+  Loop: 0
+  Mute: 0
+  Spatialize: 0
+  SpatializePostEffects: 0
+  Priority: 128
+  DopplerLevel: 1
+  MinDistance: 1
+  MaxDistance: 500
+  Pan2D: 0
+  rolloffMode: 0
+  BypassEffects: 0
+  BypassListenerEffects: 0
+  BypassReverbZones: 0
+  rolloffCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 1
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  panLevelCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  spreadCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  reverbZoneMixCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4

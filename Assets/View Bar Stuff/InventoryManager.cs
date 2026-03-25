@@ -27,6 +27,10 @@ public class InventoryManager : MonoBehaviour
     // Click-to-combine state
     private int selectedForCombine = -1;
 
+    [Header("Combine Clips")]
+    public AudioClip combineSuccessClip;
+    public AudioClip combineFailClip;
+
     void Awake()
     {
         instance = this;
@@ -238,11 +242,11 @@ public class InventoryManager : MonoBehaviour
             itemNames.RemoveAt(first); itemSprites.RemoveAt(first); itemColors.RemoveAt(first);
 
             AddItem(combo.resultName, combo.resultSprite, combo.resultColor);
-            DialogueLabel.curlyLabel.Say("Yeah. That works.");
+            DialogueLabel.curlyLabel.Say("Yeah. That works.", combineSuccessClip);
         }
         else
         {
-            DialogueLabel.curlyLabel.Say("Those don't go together.");
+            DialogueLabel.curlyLabel.Say("Those don't go together.", combineFailClip);
         }
     }
 

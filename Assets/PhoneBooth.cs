@@ -17,6 +17,8 @@ public class PhoneBooth : MonoBehaviour, IInteractable
         "Zoey, move it.",
         "Let's go, Zo. Come on."
     };
+    [Header("Call Over Clips")]
+    public AudioClip[] callOverClips = new AudioClip[5];
 
     private int callOverCount = 0;
 
@@ -27,6 +29,8 @@ public class PhoneBooth : MonoBehaviour, IInteractable
         "We're not doing this again.",
         "I'm ignoring this now."
     };
+    [Header("Pick Up Fail Clips")]
+    public AudioClip[] pickUpFailClips = new AudioClip[5];
 
     private string[] useItemFails = {
         "That's not going to do anything.",
@@ -35,6 +39,8 @@ public class PhoneBooth : MonoBehaviour, IInteractable
         "Tried it. Nothing.",
         "..."
     };
+    [Header("Use Item Fail Clips")]
+    public AudioClip[] useItemFailClips = new AudioClip[5];
 
     private string[] talkToFails = {
         "It's a phone booth. You call people with it.",
@@ -43,6 +49,19 @@ public class PhoneBooth : MonoBehaviour, IInteractable
         "Not talking to it.",
         "Done."
     };
+    [Header("Talk To Fail Clips")]
+    public AudioClip[] talkToFailClips = new AudioClip[5];
+
+    [Header("Use Zoey Sequence Clips")]
+    public AudioClip useZoey_Curly1;
+    public AudioClip useZoey_Zoey1;
+    public AudioClip useZoey_Curly2;
+    public AudioClip useZoey_Zoey2;
+    public AudioClip useZoey_Curly3;
+    public AudioClip useZoey_ZoeyFinal;
+
+    [Header("Look At Clip")]
+    public AudioClip lookAtClip;
 
     private int useZoeyCount = 0;
     private int pickUpCount = 0;
@@ -105,9 +124,11 @@ public class PhoneBooth : MonoBehaviour, IInteractable
         isLockedOut = false;
     }
 
-    string GetFailLine(string[] lines, ref int count)
+    string GetFailLine(string[] lines, AudioClip[] clips, ref int count, out AudioClip clip)
     {
-        string line = lines[Mathf.Min(count, lines.Length - 1)];
+        int index = Mathf.Min(count, lines.Length - 1);
+        string line = lines[index];
+        clip = (clips != null && index < clips.Length) ? clips[index] : null;
         if (count >= lines.Length - 1)
             isLockedOut = true;
         else
@@ -126,16 +147,16 @@ public class PhoneBooth : MonoBehaviour, IInteractable
         switch (VerbManager.instance.currentVerb)
         {
             case VerbManager.Verb.LookAt:
-                DialogueLabel.curlyLabel.Say("Phone booth.");
+                DialogueLabel.curlyLabel.Say("Phone booth.", lookAtClip);
                 break;
             case VerbManager.Verb.PickUp:
-                DialogueLabel.curlyLabel.Say(GetFailLine(pickUpFails, ref pickUpCount));
+                { AudioClip c; DialogueLabel.curlyLabel.Say(GetFailLine(pickUpFails, pickUpFailClips, ref pickUpCount, out c), c); }
                 break;
             case VerbManager.Verb.UseItem:
-                DialogueLabel.curlyLabel.Say(GetFailLine(useItemFails, ref useItemCount));
+                { AudioClip c; DialogueLabel.curlyLabel.Say(GetFailLine(useItemFails, useItemFailClips, ref useItemCount, out c), c); }
                 break;
             case VerbManager.Verb.TalkTo:
-                DialogueLabel.curlyLabel.Say(GetFailLine(talkToFails, ref talkToCount));
+                { AudioClip c; DialogueLabel.curlyLabel.Say(GetFailLine(talkToFails, talkToFailClips, ref talkToCount, out c), c); }
                 break;
             case VerbManager.Verb.Interact:
                 StartCoroutine(EnterBooth());
@@ -144,7 +165,7 @@ public class PhoneBooth : MonoBehaviour, IInteractable
                 StartCoroutine(UseZoeySequence());
                 break;
             default:
-                DialogueLabel.curlyLabel.Say("Phone booth.");
+                DialogueLabel.curlyLabel.Say("Phone booth.", lookAtClip);
                 break;
         }
     }
@@ -154,9 +175,11 @@ public class PhoneBooth : MonoBehaviour, IInteractable
         isInUse = true;
 
         // Curly calls Zoey over
-        DialogueLabel.curlyLabel.Say(callOverLines[callOverCount % callOverLines.Length]);
+        int callIndex = callOverCount % callOverLines.Length;
+        AudioClip callClip = (callOverClips != null && callIndex < callOverClips.Length) ? callOverClips[callIndex] : null;
+        DialogueLabel.curlyLabel.Say(callOverLines[callIndex], callClip);
         callOverCount++;
-        yield return new WaitForSeconds(2f);
+        yield return new WaitUntil(() => !DialogueLabel.curlyLabel.IsDisplaying());
 
         // Zoey hustles to her spawn point next to the booth
         if (zoey != null)
@@ -189,25 +212,25 @@ public class PhoneBooth : MonoBehaviour, IInteractable
     {
         if (useZoeyCount == 0)
         {
-            DialogueLabel.curlyLabel.Say("Zo, take a look at this.");
+            DialogueLabel.curlyLabel.Say("Zo, take a look at this.", useZoey_Curly1);
             yield return new WaitUntil(() => !DialogueLabel.curlyLabel.IsDisplaying());
             yield return new WaitForSeconds(0.3f);
-            DialogueLabel.zoeyLabel.Say("Already looked at it. It's a phone booth.");
+            DialogueLabel.zoeyLabel.Say("Already looked at it. It's a phone booth.", useZoey_Zoey1);
         }
         else if (useZoeyCount == 1)
         {
-            DialogueLabel.curlyLabel.Say("Yeah but does anything seem off about it?");
+            DialogueLabel.curlyLabel.Say("Yeah but does anything seem off about it?", useZoey_Curly2);
             yield return new WaitUntil(() => !DialogueLabel.curlyLabel.IsDisplaying());
             yield return new WaitForSeconds(0.3f);
-            DialogueLabel.zoeyLabel.Say("It's in the middle of nowhere. Everything seems off about it.");
+            DialogueLabel.zoeyLabel.Say("It's in the middle of nowhere. Everything seems off about it.", useZoey_Zoey2);
         }
         else if (useZoeyCount == 2)
         {
-            DialogueLabel.curlyLabel.Say("...Fair point.");
+            DialogueLabel.curlyLabel.Say("...Fair point.", useZoey_Curly3);
         }
         else
         {
-            DialogueLabel.zoeyLabel.Say("I'm taking a walk.");
+            DialogueLabel.zoeyLabel.Say("I'm taking a walk.", useZoey_ZoeyFinal);
             isLockedOut = true;
         }
 

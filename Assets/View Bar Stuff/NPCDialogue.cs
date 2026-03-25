@@ -8,7 +8,9 @@ public class NPCDialogue : MonoBehaviour
     public class DialogueLine
     {
         public string curlyLine;
+        public AudioClip curlyClip;   // Voice clip for Curly's line — leave blank for text only
         public string npcLine;
+        public AudioClip npcClip;     // Voice clip for the NPC's line — leave blank for text only
     }
 
     public enum ReturnBehavior { ReturnToParent, ReturnToRoot, EndConversation }
@@ -60,7 +62,9 @@ public class NPCDialogue : MonoBehaviour
 
     [Header("Goodbye Line")]
     public string curlyGoodbyeLine = "Take it easy.";
+    public AudioClip curlyGoodbyeClip;
     public string npcGoodbyeLine = "Yeah. See you around.";
+    public AudioClip npcGoodbyeClip;
 
     [Header("Trade / Quest")]
     [Tooltip("The item name required to complete the trade. Leave blank for no trade.")]
@@ -68,6 +72,7 @@ public class NPCDialogue : MonoBehaviour
 
     [Tooltip("Line the NPC says when the trade completes successfully.")]
     [TextArea] public string tradeCompleteLine = "";
+    public AudioClip tradeCompleteClip;
 
     [Tooltip("Item given to the player as a reward. Leave blank for no reward.")]
     public string rewardItemName = "";
@@ -76,6 +81,7 @@ public class NPCDialogue : MonoBehaviour
 
     [Tooltip("Optional custom wrong item line. Leave blank to use the auto-generated gender line.")]
     [TextArea] public string wrongItemLine = "";
+    public AudioClip wrongItemClip;
 
     // Set to true once the trade is completed so it can't be done again
     [HideInInspector] public bool tradeCompleted = false;
@@ -149,7 +155,7 @@ public class NPCDialogue : MonoBehaviour
         if (!string.IsNullOrEmpty(line.curlyLine))
         {
             DialogueLabel.curlyLabel.dialogueText.color = new Color(0f, 1f, 1f, 1f);
-            DialogueLabel.curlyLabel.Say(line.curlyLine);
+            DialogueLabel.curlyLabel.Say(line.curlyLine, line.curlyClip);
             yield return new WaitUntil(() => !DialogueLabel.curlyLabel.IsDisplaying());
         }
 
@@ -157,7 +163,7 @@ public class NPCDialogue : MonoBehaviour
 
         if (!string.IsNullOrEmpty(line.npcLine))
         {
-            DialogueLabel.ShowNPCLine(npcName, line.npcLine, transform.position);
+            DialogueLabel.ShowNPCLine(npcName, line.npcLine, transform.position, line.npcClip);
             yield return new WaitUntil(() => !DialogueLabel.npcLabel.IsDisplaying());
         }
 
@@ -207,7 +213,7 @@ public class NPCDialogue : MonoBehaviour
         if (!string.IsNullOrEmpty(curlyGoodbyeLine))
         {
             DialogueLabel.curlyLabel.dialogueText.color = new Color(0f, 1f, 1f, 1f);
-            DialogueLabel.curlyLabel.Say(curlyGoodbyeLine);
+            DialogueLabel.curlyLabel.Say(curlyGoodbyeLine, curlyGoodbyeClip);
             yield return new WaitUntil(() => !DialogueLabel.curlyLabel.IsDisplaying());
         }
 
@@ -215,7 +221,7 @@ public class NPCDialogue : MonoBehaviour
 
         if (!string.IsNullOrEmpty(npcGoodbyeLine))
         {
-            DialogueLabel.ShowNPCLine(npcName, npcGoodbyeLine, transform.position);
+            DialogueLabel.ShowNPCLine(npcName, npcGoodbyeLine, transform.position, npcGoodbyeClip);
             yield return new WaitUntil(() => !DialogueLabel.npcLabel.IsDisplaying());
         }
 
@@ -259,7 +265,7 @@ public class NPCDialogue : MonoBehaviour
 
         if (!string.IsNullOrEmpty(tradeCompleteLine))
         {
-            DialogueLabel.ShowNPCLine(npcName, tradeCompleteLine, transform.position);
+            DialogueLabel.ShowNPCLine(npcName, tradeCompleteLine, transform.position, tradeCompleteClip);
             yield return new WaitUntil(() => !DialogueLabel.npcLabel.IsDisplaying());
         }
 
@@ -287,7 +293,7 @@ public class NPCDialogue : MonoBehaviour
             }
         }
 
-        DialogueLabel.curlyLabel.Say(line);
+        DialogueLabel.curlyLabel.Say(line, wrongItemClip);
         yield return new WaitUntil(() => !DialogueLabel.curlyLabel.IsDisplaying());
     }
 
