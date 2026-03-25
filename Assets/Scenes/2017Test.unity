@@ -652,7 +652,45 @@ MonoBehaviour:
   canUseZoey: 0
   itemResponses: []
   pickUpExamineLine: Hm, what's this?
+  pickUpExamineClip: {fileID: 0}
   pickUpLine: Yeah this could definitely come in handy.
+  pickUpLineClip: {fileID: 0}
+  lookAtFailClips:
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  pickUpFailClips:
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  useItemFailClips:
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  talkToFailClips:
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  interactFailClips:
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  useZoeyFailClips:
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
 --- !u!61 &921603288
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -1514,7 +1552,45 @@ MonoBehaviour:
   canUseZoey: 0
   itemResponses: []
   pickUpExamineLine: Hm, what's this?
+  pickUpExamineClip: {fileID: 0}
   pickUpLine: Yeah this could definitely come in handy.
+  pickUpLineClip: {fileID: 0}
+  lookAtFailClips:
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  pickUpFailClips:
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  useItemFailClips:
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  talkToFailClips:
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  interactFailClips:
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  useZoeyFailClips:
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
 --- !u!212 &1961016674
 SpriteRenderer:
   serializedVersion: 2
@@ -1622,6 +1698,63 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
+--- !u!1001 &2111762015
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 6946959284987564137, guid: c30c2db5a4fa67a458fb1f373c487bcf, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 2.42316
+      objectReference: {fileID: 0}
+    - target: {fileID: 6946959284987564137, guid: c30c2db5a4fa67a458fb1f373c487bcf, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: -1.81291
+      objectReference: {fileID: 0}
+    - target: {fileID: 6946959284987564137, guid: c30c2db5a4fa67a458fb1f373c487bcf, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6946959284987564137, guid: c30c2db5a4fa67a458fb1f373c487bcf, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6946959284987564137, guid: c30c2db5a4fa67a458fb1f373c487bcf, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6946959284987564137, guid: c30c2db5a4fa67a458fb1f373c487bcf, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6946959284987564137, guid: c30c2db5a4fa67a458fb1f373c487bcf, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6946959284987564137, guid: c30c2db5a4fa67a458fb1f373c487bcf, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6946959284987564137, guid: c30c2db5a4fa67a458fb1f373c487bcf, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6946959284987564137, guid: c30c2db5a4fa67a458fb1f373c487bcf, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8821151657140183418, guid: c30c2db5a4fa67a458fb1f373c487bcf, type: 3}
+      propertyPath: m_Name
+      value: MusicManager
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: c30c2db5a4fa67a458fb1f373c487bcf, type: 3}
 --- !u!114 &2139392851 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 7639615908545958774, guid: 3c19665631d18154197ecfe4fa7e80d6, type: 3}
@@ -2708,3 +2841,4 @@ SceneRoots:
   - {fileID: 148148116}
   - {fileID: 1926601092}
   - {fileID: 1270258474}
+  - {fileID: 2111762015}
