@@ -750,7 +750,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f354b2f88b0bd5747a2dcefb0c1c025e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::IntroSequence
-  nextScene: TestRoom1
+  nextScene: 1987Test
   devNotePanel: {fileID: 800504726}
   devNoteText: {fileID: 1601090037}
   bootPanel: {fileID: 332468705}
