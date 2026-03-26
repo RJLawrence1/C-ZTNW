@@ -11,6 +11,9 @@ public class SceneTransition : MonoBehaviour
 
     private static string targetDoorTag = "";
 
+    // Set this before a scene load to hold on black before fading in
+    public static float holdTime = 0f;
+
     void Awake()
     {
         // If an instance already exists from a previous scene, destroy this
@@ -62,6 +65,13 @@ public class SceneTransition : MonoBehaviour
     {
         // Unlock movement as soon as the new scene loads
         SceneDoor.movementLocked = false;
+
+        // Hold on black if requested — used for time travel arrival sound
+        if (holdTime > 0f)
+        {
+            yield return new WaitForSeconds(holdTime);
+            holdTime = 0f;
+        }
 
         if (targetDoorTag != "")
         {

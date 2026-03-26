@@ -2647,6 +2647,7 @@ MonoBehaviour:
   - {fileID: 0}
   - {fileID: 0}
   teleportClip: {fileID: 8300000, guid: 23f52788b3601d240ae94b864a24b6af, type: 3}
+  arrivalClip: {fileID: 8300000, guid: fd52ff02a23fbd24eb3f4f692cb2073f, type: 3}
   bttf1955_Clip: {fileID: 0}
   bttf1985_Curly1: {fileID: 0}
   bttf1985_Zoey: {fileID: 0}

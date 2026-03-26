@@ -77,6 +77,7 @@ public class PhoneBoothUI : MonoBehaviour
 
     [Header("Easter Egg Clips")]
     public AudioClip teleportClip;
+    public AudioClip arrivalClip;
     public AudioClip bttf1955_Clip;
     public AudioClip bttf1985_Curly1;
     public AudioClip bttf1985_Zoey;
@@ -102,6 +103,9 @@ public class PhoneBoothUI : MonoBehaviour
         SetupButtons();
         UpdateDisplay();
 
+        // Always reset on scene load
+        isInPhoneBooth = false;
+
         // Only teleport to booth spawn if we arrived via time travel
         if (arrivedViaTimeTravel)
         {
@@ -110,8 +114,8 @@ public class PhoneBoothUI : MonoBehaviour
             PhoneBooth booth = FindObjectOfType<PhoneBooth>();
             if (booth != null)
             {
-                Transform curlySpawn = booth.transform.Find("CurlySpawn");
-                Transform zoeySpawn = booth.transform.Find("ZoeySpawn");
+                Transform curlySpawn = booth.transform.Find("CurlyInside");
+                Transform zoeySpawn = booth.transform.Find("ZoeyInside");
 
                 CurlyMovement curly = FindObjectOfType<CurlyMovement>();
                 ZoeyAI zoey = FindObjectOfType<ZoeyAI>();
@@ -121,6 +125,17 @@ public class PhoneBoothUI : MonoBehaviour
 
                 if (zoeySpawn != null && zoey != null)
                     zoey.transform.position = zoeySpawn.position;
+
+                // Lock both so ExitBoothSequence controls the order
+                if (curly != null) curly.inputLocked = true;
+                if (zoey != null) zoey.isPaused = true;
+
+                // Play arrival sound before stepping out
+                if (arrivalClip != null)
+                    audioSource.PlayOneShot(arrivalClip);
+
+                // Step them out of the booth
+                StartCoroutine(booth.ExitBoothSequence());
             }
         }
     }
@@ -199,7 +214,7 @@ public class PhoneBoothUI : MonoBehaviour
         }
     }
 
-    public void Hide()
+    public void Hide(bool triggerExit = true)
     {
         isInPhoneBooth = false;
         isProcessing = false;
@@ -213,8 +228,12 @@ public class PhoneBoothUI : MonoBehaviour
             MusicManager.instance.SetVolume(1f);
 
         phoneBoothPanel.SetActive(false);
-        if (currentBooth != null)
+
+        if (triggerExit && currentBooth != null)
+            StartCoroutine(currentBooth.ExitBoothSequence());
+        else if (!triggerExit && currentBooth != null)
             currentBooth.ExitBooth();
+
         currentBooth = null;
     }
 
@@ -383,7 +402,7 @@ public class PhoneBoothUI : MonoBehaviour
 
     IEnumerator SameEra()
     {
-        Hide();
+        Hide(false);
         int index = sameEraCount % sameEraLines.Length;
         AudioClip clip = (sameEraClips != null && index < sameEraClips.Length) ? sameEraClips[index] : null;
         DialogueLabel.curlyLabel.Say(sameEraLines[index], clip);
@@ -394,7 +413,7 @@ public class PhoneBoothUI : MonoBehaviour
     IEnumerator TimeTravel(string era)
     {
         // Close the phone UI first
-        Hide();
+        Hide(false);
 
         // Call Zoey over
         ZoeyAI zoey = FindObjectOfType<ZoeyAI>();
@@ -441,6 +460,10 @@ public class PhoneBoothUI : MonoBehaviour
 
         currentEra = era;
         arrivedViaTimeTravel = true;
+
+        // Hold on black for arrival clip length so it plays before fade in
+        if (arrivalClip != null)
+            SceneTransition.holdTime = arrivalClip.length;
 
         switch (era)
         {

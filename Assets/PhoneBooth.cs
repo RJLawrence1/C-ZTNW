@@ -90,7 +90,7 @@ public class PhoneBooth : MonoBehaviour, IInteractable
                 ResetCounts();
         }
 
-        int iLayer = LayerMask.GetMask("Interactable");
+        int iLayer = LayerMask.GetMask("PhoneBooth");
 
         Vector2 hoverPos = Mouse.current.position.ReadValue();
         RaycastHit2D hoverHit = Physics2D.Raycast(Camera.main.ScreenToWorldPoint(hoverPos), Vector2.zero, Mathf.Infinity, iLayer);
@@ -174,6 +174,35 @@ public class PhoneBooth : MonoBehaviour, IInteractable
     {
         isInUse = true;
 
+        // Get spawn points
+        Transform entryPoint = transform.Find("EntryPoint");
+        Transform curlyInside = transform.Find("CurlyInside");
+        Transform zoeyInside = transform.Find("ZoeyInside");
+        Transform zoeyEntry = transform.Find("ZoeySpawn");
+
+        // Curly walks to entry point — disable collider so he doesn't get shoved
+        Collider2D curlyCol = curly.GetComponent<Collider2D>();
+        if (curlyCol != null) curlyCol.enabled = false;
+
+        // Make sure input is unlocked so Curly can walk to entry point
+        curly.inputLocked = false;
+        curly.CancelMovement();
+
+        if (entryPoint != null)
+        {
+            curly.WalkToPosition(entryPoint.position);
+            yield return new WaitUntil(() =>
+                Vector3.Distance(curly.transform.position, entryPoint.position) < 0.2f);
+        }
+
+        // Lock Curly now that he's at the entry point
+        curly.inputLocked = true;
+        curly.CancelMovement();
+
+        // Move Curly inside
+        if (curlyInside != null)
+            curly.transform.position = curlyInside.position;
+
         // Curly calls Zoey over
         int callIndex = callOverCount % callOverLines.Length;
         AudioClip callClip = (callOverClips != null && callIndex < callOverClips.Length) ? callOverClips[callIndex] : null;
@@ -181,14 +210,15 @@ public class PhoneBooth : MonoBehaviour, IInteractable
         callOverCount++;
         yield return new WaitUntil(() => !DialogueLabel.curlyLabel.IsDisplaying());
 
-        // Zoey hustles to her spawn point next to the booth
+        // Zoey hustles to entry point — disable collider so she doesn't get shoved
+        Collider2D zoeyCol = zoey != null ? zoey.GetComponent<Collider2D>() : null;
+        if (zoeyCol != null) zoeyCol.enabled = false;
+
         if (zoey != null)
         {
-            Transform zoeySpawn = transform.Find("ZoeySpawn");
-            Vector3 destination = zoeySpawn != null ? zoeySpawn.position : transform.position;
-            zoey.HustleTo(destination);
+            Vector3 zoeyDest = zoeyEntry != null ? zoeyEntry.position : entryPoint != null ? entryPoint.position : transform.position;
+            zoey.HustleTo(zoeyDest);
 
-            // Wait for her to arrive, with a 10 second timeout
             float timeout = 10f;
             while (!zoey.hasArrived && timeout > 0f)
             {
@@ -197,15 +227,87 @@ public class PhoneBooth : MonoBehaviour, IInteractable
             }
         }
 
-        // Now open the phone UI
+        // Move Zoey inside
+        if (zoeyInside != null && zoey != null)
+            zoey.transform.position = zoeyInside.position;
+
+        // Re-enable only Zoey's collider after a moment — Curly's stays off until exit
+        yield return new WaitForSeconds(0.5f);
+        if (zoeyCol != null) zoeyCol.enabled = true;
+
+        // Freeze Zoey so she doesn't wander out while UI is open
+        if (zoey != null) zoey.isPaused = true;
+
+        // Open the phone UI
         PhoneBoothUI.instance.Show(this);
+    }
+
+    // Called on hangup and easter egg endings — steps both characters out of the booth
+    public IEnumerator ExitBoothSequence()
+    {
+        isInUse = false;
+
+        // Unfreeze both now that UI is closed
+        if (zoey != null) zoey.isPaused = false;
+        if (curly != null) curly.inputLocked = false;
+
+        // How far left to step out — adjust to match your booth width
+        float exitDistance = 1.5f;
+
+        // Get booth collider to know when they're clear
+        Collider2D boothCol = GetComponent<Collider2D>();
+
+        // Zoey exits first
+        if (zoey != null)
+        {
+            Collider2D zoeyCol = zoey.GetComponent<Collider2D>();
+            if (zoeyCol != null) zoeyCol.enabled = false;
+
+            Vector3 zoeyExit = zoey.transform.position + Vector3.left * exitDistance;
+            zoey.HustleTo(zoeyExit);
+
+            float timeout = 5f;
+            while (!zoey.hasArrived && timeout > 0f)
+            {
+                timeout -= Time.deltaTime;
+                yield return null;
+            }
+
+            zoey.StopAndStay();
+            yield return new WaitForSeconds(1f);
+            if (zoeyCol != null) zoeyCol.enabled = true;
+        }
+
+        yield return new WaitForSeconds(0.2f);
+
+        // Curly exits
+        if (curly != null)
+        {
+            Collider2D curlyCol = curly.GetComponent<Collider2D>();
+            if (curlyCol != null) curlyCol.enabled = false;
+            curly.inputLocked = false;
+            curly.CancelMovement();
+
+            Vector3 curlyExit = curly.transform.position + Vector3.left * exitDistance;
+            curly.WalkToPosition(curlyExit);
+
+            yield return new WaitUntil(() =>
+                Vector3.Distance(curly.transform.position, curlyExit) < 0.2f);
+
+            yield return new WaitForSeconds(1f);
+            if (curlyCol != null) curlyCol.enabled = true;
+        }
     }
 
     public void ExitBooth()
     {
         isInUse = false;
         if (zoey != null)
+        {
+            zoey.isPaused = false;
             zoey.StopAndStay();
+        }
+        if (curly != null) curly.inputLocked = false;
     }
 
     IEnumerator UseZoeySequence()
