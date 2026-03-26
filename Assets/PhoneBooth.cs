@@ -261,7 +261,9 @@ public class PhoneBooth : MonoBehaviour, IInteractable
         if (zoey != null)
         {
             Collider2D zoeyCol = zoey.GetComponent<Collider2D>();
+            Rigidbody2D zoeyRb = zoey.GetComponent<Rigidbody2D>();
             if (zoeyCol != null) zoeyCol.enabled = false;
+            if (zoeyRb != null) zoeyRb.simulated = true;
 
             Vector3 zoeyExit = zoey.transform.position + Vector3.left * exitDistance;
             zoey.HustleTo(zoeyExit);
@@ -274,7 +276,7 @@ public class PhoneBooth : MonoBehaviour, IInteractable
             }
 
             zoey.StopAndStay();
-            yield return new WaitForSeconds(1f);
+            yield return new WaitForSeconds(0.2f);
             if (zoeyCol != null) zoeyCol.enabled = true;
         }
 
@@ -284,7 +286,9 @@ public class PhoneBooth : MonoBehaviour, IInteractable
         if (curly != null)
         {
             Collider2D curlyCol = curly.GetComponent<Collider2D>();
+            Rigidbody2D curlyRb = curly.GetComponent<Rigidbody2D>();
             if (curlyCol != null) curlyCol.enabled = false;
+            if (curlyRb != null) curlyRb.simulated = true;
             curly.inputLocked = false;
             curly.CancelMovement();
 
@@ -294,7 +298,7 @@ public class PhoneBooth : MonoBehaviour, IInteractable
             yield return new WaitUntil(() =>
                 Vector3.Distance(curly.transform.position, curlyExit) < 0.2f);
 
-            yield return new WaitForSeconds(1f);
+            yield return new WaitForSeconds(0.2f);
             if (curlyCol != null) curlyCol.enabled = true;
         }
     }

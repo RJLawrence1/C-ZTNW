@@ -121,10 +121,22 @@ public class PhoneBoothUI : MonoBehaviour
                 ZoeyAI zoey = FindObjectOfType<ZoeyAI>();
 
                 if (curlySpawn != null && curly != null)
+                {
                     curly.transform.position = curlySpawn.position;
+                    Collider2D curlyCol = curly.GetComponent<Collider2D>();
+                    if (curlyCol != null) curlyCol.enabled = false;
+                    Rigidbody2D curlyRb = curly.GetComponent<Rigidbody2D>();
+                    if (curlyRb != null) curlyRb.simulated = false;
+                }
 
                 if (zoeySpawn != null && zoey != null)
+                {
                     zoey.transform.position = zoeySpawn.position;
+                    Collider2D zoeyCol = zoey.GetComponent<Collider2D>();
+                    if (zoeyCol != null) zoeyCol.enabled = false;
+                    Rigidbody2D zoeyRb = zoey.GetComponent<Rigidbody2D>();
+                    if (zoeyRb != null) zoeyRb.simulated = false;
+                }
 
                 // Lock both so ExitBoothSequence controls the order
                 if (curly != null) curly.inputLocked = true;
