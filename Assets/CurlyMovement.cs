@@ -14,8 +14,9 @@ public class CurlyMovement : MonoBehaviour
 
     public float topY = 2f;
     public float bottomY = -2f;
-    public float minScale = 0.5f;
+    public float minScale = 0.75f;
     public float maxScale = 1f;
+    public float scaleSmoothing = 5f;
     public float verbBarWorldY = -4f;
     public float interactRange = 0.1f;
 
@@ -251,7 +252,9 @@ public class CurlyMovement : MonoBehaviour
         }
 
         float t = Mathf.InverseLerp(topY, bottomY, transform.position.y);
-        float newScale = Mathf.Lerp(minScale, maxScale, t);
+        float targetScale = Mathf.Lerp(minScale, maxScale, t);
+        float currentScale = transform.localScale.x;
+        float newScale = Mathf.Lerp(currentScale, targetScale, Time.deltaTime * scaleSmoothing);
         transform.localScale = new Vector3(newScale, newScale, 1f);
 
         // Feed movement delta to animator

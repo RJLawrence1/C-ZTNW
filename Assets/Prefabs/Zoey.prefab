@@ -326,8 +326,9 @@ MonoBehaviour:
   isPaused: 0
   topY: 2
   bottomY: -2
-  minScale: 0.5
+  minScale: 0.85
   maxScale: 1
+  scaleSmoothing: 3
   hasArrived: 0
 --- !u!114 &6603612895816982330
 MonoBehaviour:
