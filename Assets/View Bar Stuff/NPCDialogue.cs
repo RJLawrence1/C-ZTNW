@@ -56,6 +56,8 @@ public class NPCDialogue : MonoBehaviour
     [Header("NPC Settings")]
     public string npcName = "NPC";
     public NPCGender gender = NPCGender.Ambiguous;
+    public Sprite portrait;
+    public Color nameColor = Color.red;
 
     [Tooltip("Root level topics — the first choices the player sees")]
     public DialogueTopic[] topics;
@@ -99,6 +101,10 @@ public class NPCDialogue : MonoBehaviour
 
         // Tell DialogueLabel where this NPC is so animations work
         DialogueLabel.currentNPCTransform = transform;
+
+        // Show the dialogue screen with portraits
+        if (DialogueScreen.instance != null)
+            DialogueScreen.instance.Show(npcName, portrait, nameColor);
 
         ShowTopics(topics);
     }
@@ -156,6 +162,14 @@ public class NPCDialogue : MonoBehaviour
         {
             DialogueLabel.curlyLabel.dialogueText.color = new Color(0f, 1f, 1f, 1f);
             DialogueLabel.curlyLabel.Say(line.curlyLine, line.curlyClip);
+
+            // Also show in dialogue screen if it's open
+            if (DialogueScreen.instance != null && DialogueScreen.instance.screenPanel.activeSelf)
+            {
+                float dur = line.curlyClip != null ? line.curlyClip.length : DialogueScreen.instance.displayTime;
+                DialogueScreen.instance.SayCurly(line.curlyLine, dur);
+            }
+
             yield return new WaitUntil(() => !DialogueLabel.curlyLabel.IsDisplaying());
         }
 
@@ -164,6 +178,14 @@ public class NPCDialogue : MonoBehaviour
         if (!string.IsNullOrEmpty(line.npcLine))
         {
             DialogueLabel.ShowNPCLine(npcName, line.npcLine, transform.position, line.npcClip);
+
+            // Also show in dialogue screen if it's open
+            if (DialogueScreen.instance != null && DialogueScreen.instance.screenPanel.activeSelf)
+            {
+                float dur = line.npcClip != null ? line.npcClip.length : DialogueScreen.instance.displayTime;
+                DialogueScreen.instance.SayNPC(line.npcLine, dur);
+            }
+
             yield return new WaitUntil(() => !DialogueLabel.npcLabel.IsDisplaying());
         }
 
@@ -214,6 +236,13 @@ public class NPCDialogue : MonoBehaviour
         {
             DialogueLabel.curlyLabel.dialogueText.color = new Color(0f, 1f, 1f, 1f);
             DialogueLabel.curlyLabel.Say(curlyGoodbyeLine, curlyGoodbyeClip);
+
+            if (DialogueScreen.instance != null && DialogueScreen.instance.screenPanel.activeSelf)
+            {
+                float dur = curlyGoodbyeClip != null ? curlyGoodbyeClip.length : DialogueScreen.instance.displayTime;
+                DialogueScreen.instance.SayCurly(curlyGoodbyeLine, dur);
+            }
+
             yield return new WaitUntil(() => !DialogueLabel.curlyLabel.IsDisplaying());
         }
 
@@ -222,6 +251,13 @@ public class NPCDialogue : MonoBehaviour
         if (!string.IsNullOrEmpty(npcGoodbyeLine))
         {
             DialogueLabel.ShowNPCLine(npcName, npcGoodbyeLine, transform.position, npcGoodbyeClip);
+
+            if (DialogueScreen.instance != null && DialogueScreen.instance.screenPanel.activeSelf)
+            {
+                float dur = npcGoodbyeClip != null ? npcGoodbyeClip.length : DialogueScreen.instance.displayTime;
+                DialogueScreen.instance.SayNPC(npcGoodbyeLine, dur);
+            }
+
             yield return new WaitUntil(() => !DialogueLabel.npcLabel.IsDisplaying());
         }
 
@@ -231,6 +267,10 @@ public class NPCDialogue : MonoBehaviour
         topicStack.Clear();
         DialogueManager.instance.HideDialogue();
         DialogueLabel.currentNPCTransform = null;
+
+        // Hide the dialogue screen
+        if (DialogueScreen.instance != null)
+            DialogueScreen.instance.Hide();
     }
 
     // Called from Interactable when the player uses an item on this NPC

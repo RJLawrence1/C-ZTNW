@@ -1458,6 +1458,14 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 5385307073494991372, guid: 1331788e438999f45a5f78ca3bdc85e4, type: 3}
+      propertyPath: npcName
+      value: TestNPC
+      objectReference: {fileID: 0}
+    - target: {fileID: 5385307073494991372, guid: 1331788e438999f45a5f78ca3bdc85e4, type: 3}
+      propertyPath: portrait
+      value: 
+      objectReference: {fileID: -5557909102646892444, guid: cabefc4699946634a842efb6882fcb6e, type: 3}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -2381,6 +2389,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 945399548075832513, guid: 3c19665631d18154197ecfe4fa7e80d6, type: 3}
+      propertyPath: m_Sprite
+      value: 
+      objectReference: {fileID: 0}
     - target: {fileID: 1421597692255490887, guid: 3c19665631d18154197ecfe4fa7e80d6, type: 3}
       propertyPath: m_AnchorMax.y
       value: 0
@@ -2584,6 +2596,10 @@ PrefabInstance:
     - target: {fileID: 5868189229759828038, guid: 3c19665631d18154197ecfe4fa7e80d6, type: 3}
       propertyPath: m_AnchoredPosition.y
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6204002183299390809, guid: 3c19665631d18154197ecfe4fa7e80d6, type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: 475
       objectReference: {fileID: 0}
     - target: {fileID: 6942173995119700413, guid: 3c19665631d18154197ecfe4fa7e80d6, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Target
