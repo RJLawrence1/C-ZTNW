@@ -310,4 +310,49 @@ public class NPCDialogue : MonoBehaviour
         if (index >= 0 && index < topics.Length)
             topics[index].hasBeenSelected = true;
     }
+
+    // Save this NPC's state to PlayerPrefs using npcName as key
+    public void SaveState()
+    {
+        string key = "NPC_" + npcName;
+        PlayerPrefs.SetInt(key + "_tradeCompleted", tradeCompleted ? 1 : 0);
+        SaveTopics(topics, key + "_root");
+    }
+
+    void SaveTopics(DialogueTopic[] topicList, string prefix)
+    {
+        if (topicList == null) return;
+        PlayerPrefs.SetInt(prefix + "_count", topicList.Length);
+        for (int i = 0; i < topicList.Length; i++)
+        {
+            string t = prefix + "_" + i;
+            PlayerPrefs.SetInt(t + "_selected", topicList[i].hasBeenSelected ? 1 : 0);
+            PlayerPrefs.SetInt(t + "_line", topicList[i].currentLine);
+            if (topicList[i].HasChildren())
+                SaveTopics(topicList[i].childTopics, t + "_children");
+        }
+    }
+
+    // Load this NPC's state from PlayerPrefs
+    public void LoadState()
+    {
+        string key = "NPC_" + npcName;
+        if (!PlayerPrefs.HasKey(key + "_tradeCompleted")) return;
+        tradeCompleted = PlayerPrefs.GetInt(key + "_tradeCompleted") == 1;
+        LoadTopics(topics, key + "_root");
+    }
+
+    void LoadTopics(DialogueTopic[] topicList, string prefix)
+    {
+        if (topicList == null) return;
+        int count = PlayerPrefs.GetInt(prefix + "_count", 0);
+        for (int i = 0; i < Mathf.Min(topicList.Length, count); i++)
+        {
+            string t = prefix + "_" + i;
+            topicList[i].hasBeenSelected = PlayerPrefs.GetInt(t + "_selected", 0) == 1;
+            topicList[i].currentLine = PlayerPrefs.GetInt(t + "_line", 0);
+            if (topicList[i].HasChildren())
+                LoadTopics(topicList[i].childTopics, t + "_children");
+        }
+    }
 }

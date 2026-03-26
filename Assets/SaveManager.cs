@@ -43,6 +43,11 @@ public class SaveManager : MonoBehaviour
 
         if (notificationText != null)
             notificationText.color = new Color(notificationText.color.r, notificationText.color.g, notificationText.color.b, 0f);
+
+        // Load played cutscenes from PlayerPrefs so they persist across sessions
+        int playedCutsceneCount = PlayerPrefs.GetInt("PlayedCutsceneCount", 0);
+        for (int i = 0; i < playedCutsceneCount; i++)
+            CutsceneTrigger.playedCutscenes.Add(PlayerPrefs.GetString("PlayedCutscene" + i));
     }
 
     void OnEnable()
@@ -124,6 +129,12 @@ public class SaveManager : MonoBehaviour
         PlayerPrefs.SetInt("PlayedCutsceneCount", playedCutscenes.Count);
         for (int i = 0; i < playedCutscenes.Count; i++)
             PlayerPrefs.SetString("PlayedCutscene" + i, playedCutscenes[i]);
+
+        // Save all NPC dialogue states
+        NPCDialogue[] allNPCs = FindObjectsOfType<NPCDialogue>(true);
+        PlayerPrefs.SetInt("NPCCount", allNPCs.Length);
+        for (int i = 0; i < allNPCs.Length; i++)
+            allNPCs[i].SaveState();
 
         PlayerPrefs.Save();
 
@@ -223,6 +234,11 @@ public class SaveManager : MonoBehaviour
         int playedCutsceneCount = PlayerPrefs.GetInt("PlayedCutsceneCount", 0);
         for (int i = 0; i < playedCutsceneCount; i++)
             CutsceneTrigger.playedCutscenes.Add(PlayerPrefs.GetString("PlayedCutscene" + i));
+
+        // Restore all NPC dialogue states
+        NPCDialogue[] allNPCs = FindObjectsOfType<NPCDialogue>(true);
+        foreach (NPCDialogue npc in allNPCs)
+            npc.LoadState();
 
         if (Random.Range(0, 100) == 0)
             StartCoroutine(LoadDialogue());
