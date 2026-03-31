@@ -8,9 +8,12 @@ public class NPCDialogue : MonoBehaviour
     public class DialogueLine
     {
         public string curlyLine;
-        public AudioClip curlyClip;   // Voice clip for Curly's line — leave blank for text only
+        public AudioClip curlyClip;
+        public DialogueScreen.Emotion curlyEmotion = DialogueScreen.Emotion.Normal;
+
         public string npcLine;
-        public AudioClip npcClip;     // Voice clip for the NPC's line — leave blank for text only
+        public AudioClip npcClip;
+        public DialogueScreen.Emotion npcEmotion = DialogueScreen.Emotion.Normal;
     }
 
     public enum ReturnBehavior { ReturnToParent, ReturnToRoot, EndConversation }
@@ -18,13 +21,13 @@ public class NPCDialogue : MonoBehaviour
     [System.Serializable]
     public class DialogueTopic
     {
-        public string topicLabel;           // What shows in the choice panel
-        public bool rotate = true;          // Rotate through lines or repeat the last one
-        public bool oneShot = false;        // If true, disappears after being selected once
-        public DialogueLine[] lines;        // One or more line pairs
+        public string topicLabel;
+        public bool rotate = true;
+        public bool oneShot = false;
+        public DialogueLine[] lines;
 
         [Tooltip("Topics that appear after this one is selected. Leave empty to use return behavior.")]
-        public DialogueTopic[] childTopics; // Sub-topics that appear after this plays
+        public DialogueTopic[] childTopics;
 
         public ReturnBehavior returnBehavior = ReturnBehavior.ReturnToParent;
 
@@ -50,7 +53,6 @@ public class NPCDialogue : MonoBehaviour
         }
     }
 
-    // Gender options for auto-generating wrong item lines
     public enum NPCGender { Male, Female, Ambiguous }
 
     [Header("NPC Settings")]
@@ -59,14 +61,19 @@ public class NPCDialogue : MonoBehaviour
     public Sprite portrait;
     public Color nameColor = Color.red;
 
+    [Header("NPC Portrait Frames")]
+    public DialogueScreen.NPCPortraitData portraitData;
+
     [Tooltip("Root level topics — the first choices the player sees")]
     public DialogueTopic[] topics;
 
     [Header("Goodbye Line")]
     public string curlyGoodbyeLine = "Take it easy.";
     public AudioClip curlyGoodbyeClip;
+    public DialogueScreen.Emotion curlyGoodbyeEmotion = DialogueScreen.Emotion.Normal;
     public string npcGoodbyeLine = "Yeah. See you around.";
     public AudioClip npcGoodbyeClip;
+    public DialogueScreen.Emotion npcGoodbyeEmotion = DialogueScreen.Emotion.Normal;
 
     [Header("Trade / Quest")]
     [Tooltip("The item name required to complete the trade. Leave blank for no trade.")]
@@ -85,12 +92,9 @@ public class NPCDialogue : MonoBehaviour
     [TextArea] public string wrongItemLine = "";
     public AudioClip wrongItemClip;
 
-    // Set to true once the trade is completed so it can't be done again
     [HideInInspector] public bool tradeCompleted = false;
 
     private bool isTalking = false;
-
-    // Stack of topic lists — lets us go back up the tree
     private Stack<DialogueTopic[]> topicStack = new Stack<DialogueTopic[]>();
 
     public void StartConversation()
@@ -99,12 +103,11 @@ public class NPCDialogue : MonoBehaviour
         isTalking = true;
         topicStack.Clear();
 
-        // Tell DialogueLabel where this NPC is so animations work
         DialogueLabel.currentNPCTransform = transform;
 
-        // Show the dialogue screen with portraits
+        // Pass this NPC's portrait data so DialogueScreen uses the right frames
         if (DialogueScreen.instance != null)
-            DialogueScreen.instance.Show(npcName, portrait, nameColor);
+            DialogueScreen.instance.Show(npcName, portrait, nameColor, portraitData);
 
         ShowTopics(topics);
     }
@@ -116,7 +119,6 @@ public class NPCDialogue : MonoBehaviour
 
         foreach (DialogueTopic topic in currentTopics)
         {
-            // Skip one-shot topics that have already been selected
             if (topic.oneShot && topic.hasBeenSelected) continue;
 
             DialogueTopic captured = topic;
@@ -124,14 +126,12 @@ public class NPCDialogue : MonoBehaviour
             actions.Add(() => SelectTopic(captured, currentTopics));
         }
 
-        // Add Back option if we're in a sub-branch
         if (topicStack.Count > 0)
         {
             options.Add("Back.");
             actions.Add(() => GoBack());
         }
 
-        // Always add Goodbye at root level
         if (topicStack.Count == 0)
         {
             options.Add("Goodbye.");
@@ -163,11 +163,10 @@ public class NPCDialogue : MonoBehaviour
             DialogueLabel.curlyLabel.dialogueText.color = new Color(0f, 1f, 1f, 1f);
             DialogueLabel.curlyLabel.Say(line.curlyLine, line.curlyClip);
 
-            // Also show in dialogue screen if it's open
             if (DialogueScreen.instance != null && DialogueScreen.instance.screenPanel.activeSelf)
             {
                 float dur = line.curlyClip != null ? line.curlyClip.length : DialogueScreen.instance.displayTime;
-                DialogueScreen.instance.SayCurly(line.curlyLine, dur);
+                DialogueScreen.instance.SayCurly(line.curlyLine, dur, line.curlyEmotion);
             }
 
             yield return new WaitUntil(() => !DialogueLabel.curlyLabel.IsDisplaying());
@@ -179,11 +178,10 @@ public class NPCDialogue : MonoBehaviour
         {
             DialogueLabel.ShowNPCLine(npcName, line.npcLine, transform.position, line.npcClip);
 
-            // Also show in dialogue screen if it's open
             if (DialogueScreen.instance != null && DialogueScreen.instance.screenPanel.activeSelf)
             {
                 float dur = line.npcClip != null ? line.npcClip.length : DialogueScreen.instance.displayTime;
-                DialogueScreen.instance.SayNPC(line.npcLine, dur);
+                DialogueScreen.instance.SayNPC(line.npcLine, dur, line.npcEmotion);
             }
 
             yield return new WaitUntil(() => !DialogueLabel.npcLabel.IsDisplaying());
@@ -193,7 +191,6 @@ public class NPCDialogue : MonoBehaviour
 
         topic.Advance();
 
-        // If this topic has children, push current level and show children
         if (topic.HasChildren())
         {
             topicStack.Push(currentTopics);
@@ -201,7 +198,6 @@ public class NPCDialogue : MonoBehaviour
             yield break;
         }
 
-        // No children — use return behavior
         switch (topic.returnBehavior)
         {
             case ReturnBehavior.ReturnToParent:
@@ -240,7 +236,7 @@ public class NPCDialogue : MonoBehaviour
             if (DialogueScreen.instance != null && DialogueScreen.instance.screenPanel.activeSelf)
             {
                 float dur = curlyGoodbyeClip != null ? curlyGoodbyeClip.length : DialogueScreen.instance.displayTime;
-                DialogueScreen.instance.SayCurly(curlyGoodbyeLine, dur);
+                DialogueScreen.instance.SayCurly(curlyGoodbyeLine, dur, curlyGoodbyeEmotion);
             }
 
             yield return new WaitUntil(() => !DialogueLabel.curlyLabel.IsDisplaying());
@@ -255,7 +251,7 @@ public class NPCDialogue : MonoBehaviour
             if (DialogueScreen.instance != null && DialogueScreen.instance.screenPanel.activeSelf)
             {
                 float dur = npcGoodbyeClip != null ? npcGoodbyeClip.length : DialogueScreen.instance.displayTime;
-                DialogueScreen.instance.SayNPC(npcGoodbyeLine, dur);
+                DialogueScreen.instance.SayNPC(npcGoodbyeLine, dur, npcGoodbyeEmotion);
             }
 
             yield return new WaitUntil(() => !DialogueLabel.npcLabel.IsDisplaying());
@@ -268,32 +264,15 @@ public class NPCDialogue : MonoBehaviour
         DialogueManager.instance.HideDialogue();
         DialogueLabel.currentNPCTransform = null;
 
-        // Hide the dialogue screen
         if (DialogueScreen.instance != null)
             DialogueScreen.instance.Hide();
     }
 
-    // Called from Interactable when the player uses an item on this NPC
     public void TryTradeItem(string usedItemName)
     {
-        if (string.IsNullOrEmpty(requiredItemName))
-        {
-            StartCoroutine(SayWrongItem());
-            return;
-        }
-
-        if (tradeCompleted)
-        {
-            StartCoroutine(SayWrongItem());
-            return;
-        }
-
-        if (usedItemName != requiredItemName)
-        {
-            StartCoroutine(SayWrongItem());
-            return;
-        }
-
+        if (string.IsNullOrEmpty(requiredItemName)) { StartCoroutine(SayWrongItem()); return; }
+        if (tradeCompleted) { StartCoroutine(SayWrongItem()); return; }
+        if (usedItemName != requiredItemName) { StartCoroutine(SayWrongItem()); return; }
         StartCoroutine(CompleteTrade());
     }
 
@@ -337,21 +316,18 @@ public class NPCDialogue : MonoBehaviour
         yield return new WaitUntil(() => !DialogueLabel.curlyLabel.IsDisplaying());
     }
 
-    // Call from code to unlock a root topic
     public void UnlockTopic(int index)
     {
         if (index >= 0 && index < topics.Length)
             topics[index].hasBeenSelected = false;
     }
 
-    // Call from code to lock a root topic
     public void LockTopic(int index)
     {
         if (index >= 0 && index < topics.Length)
             topics[index].hasBeenSelected = true;
     }
 
-    // Save this NPC's state to PlayerPrefs using npcName as key
     public void SaveState()
     {
         string key = "NPC_" + npcName;
@@ -373,7 +349,6 @@ public class NPCDialogue : MonoBehaviour
         }
     }
 
-    // Load this NPC's state from PlayerPrefs
     public void LoadState()
     {
         string key = "NPC_" + npcName;

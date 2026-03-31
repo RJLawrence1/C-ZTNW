@@ -433,28 +433,84 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 85a5275123d917a4aa9bc116e2352ffe, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ZoeyInteractable
+  zoeyPortrait: {fileID: 0}
+  zoeyNameColor: {r: 1, g: 0.5, b: 0.8, a: 1}
   lookAtClip: {fileID: 0}
   pickUpClip: {fileID: 0}
   useItemClip: {fileID: 0}
   interactClip: {fileID: 0}
-  howsItGoing_Curly1: {fileID: 0}
-  howsItGoing_Zoey1: {fileID: 0}
-  howsItGoing_Curly2: {fileID: 0}
-  howsItGoing_Zoey2: {fileID: 0}
-  youGood_Curly1: {fileID: 0}
-  youGood_Zoey1: {fileID: 0}
-  youGood_Curly2: {fileID: 0}
-  youGood_Zoey2: {fileID: 0}
-  moving_Curly1: {fileID: 0}
-  moving_Zoey1: {fileID: 0}
-  moving_Curly2: {fileID: 0}
-  moving_Zoey2: {fileID: 0}
-  neverMind_Curly: {fileID: 0}
-  neverMind_Zoey: {fileID: 0}
-  useZoeyOnZoey_Curly1: {fileID: 0}
-  useZoeyOnZoey_Curly2: {fileID: 0}
-  useZoeyOnZoey_Zoey: {fileID: 0}
-  useZoeyOnZoey_Curly3: {fileID: 0}
+  howsItGoing_Curly1:
+    line: How you holdin' up, Zo?
+    clip: {fileID: 0}
+    emotion: 4
+  howsItGoing_Zoey1:
+    line: Fine. Why, do I not look fine?
+    clip: {fileID: 0}
+    emotion: 7
+  howsItGoing_Curly2:
+    line: You look fine.
+    clip: {fileID: 0}
+    emotion: 0
+  howsItGoing_Zoey2:
+    line: Then why'd you ask.
+    clip: {fileID: 0}
+    emotion: 0
+  youGood_Curly1:
+    line: You good?
+    clip: {fileID: 0}
+    emotion: 0
+  youGood_Zoey1:
+    line: Yeah. You?
+    clip: {fileID: 0}
+    emotion: 0
+  youGood_Curly2:
+    line: Yeah.
+    clip: {fileID: 0}
+    emotion: 0
+  youGood_Zoey2:
+    line: Cool.
+    clip: {fileID: 0}
+    emotion: 0
+  moving_Curly1:
+    line: We should probably get moving.
+    clip: {fileID: 0}
+    emotion: 0
+  moving_Zoey1:
+    line: I've been ready.
+    clip: {fileID: 0}
+    emotion: 7
+  moving_Curly2:
+    line: No you haven't.
+    clip: {fileID: 0}
+    emotion: 0
+  moving_Zoey2:
+    line: ...No I haven't.
+    clip: {fileID: 0}
+    emotion: 2
+  neverMind_Curly:
+    line: Nevermind.
+    clip: {fileID: 0}
+    emotion: 0
+  neverMind_Zoey:
+    line: Alright then.
+    clip: {fileID: 0}
+    emotion: 0
+  useZoeyOnZoey_Curly1:
+    line: Hey Zo...
+    clip: {fileID: 0}
+    emotion: 0
+  useZoeyOnZoey_Curly2:
+    line: What would you do if someone asked you to check yourself out?
+    clip: {fileID: 0}
+    emotion: 4
+  useZoeyOnZoey_Zoey:
+    line: I'd tell them to mind their business.
+    clip: {fileID: 0}
+    emotion: 7
+  useZoeyOnZoey_Curly3:
+    line: Fair enough.
+    clip: {fileID: 0}
+    emotion: 0
 --- !u!114 &5986707540066100762
 MonoBehaviour:
   m_ObjectHideFlags: 0

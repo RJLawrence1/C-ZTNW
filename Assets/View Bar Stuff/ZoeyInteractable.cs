@@ -7,9 +7,18 @@ public class ZoeyInteractable : MonoBehaviour, IInteractable
     private ZoeyAI zoeyAI;
     private CurlyMovement curly;
 
+    // Reusable line struct — text, clip, and emotion all in one Inspector block
+    [System.Serializable]
+    public class ZoeyLine
+    {
+        [TextArea] public string line;
+        public AudioClip clip;
+        public DialogueScreen.Emotion emotion = DialogueScreen.Emotion.Normal;
+    }
+
     [Header("Zoey Portrait")]
     public Sprite zoeyPortrait;
-    public Color zoeyNameColor = new Color(1f, 0.5f, 0.8f); // pink to match her label
+    public Color zoeyNameColor = new Color(1f, 0.5f, 0.8f);
 
     [Header("Verb Response Clips")]
     public AudioClip lookAtClip;
@@ -17,33 +26,33 @@ public class ZoeyInteractable : MonoBehaviour, IInteractable
     public AudioClip useItemClip;
     public AudioClip interactClip;
 
-    [Header("How You Holdin' Up Clips")]
-    public AudioClip howsItGoing_Curly1;
-    public AudioClip howsItGoing_Zoey1;
-    public AudioClip howsItGoing_Curly2;
-    public AudioClip howsItGoing_Zoey2;
+    [Header("How You Holdin' Up")]
+    public ZoeyLine howsItGoing_Curly1;
+    public ZoeyLine howsItGoing_Zoey1;
+    public ZoeyLine howsItGoing_Curly2;
+    public ZoeyLine howsItGoing_Zoey2;
 
-    [Header("You Good Clips")]
-    public AudioClip youGood_Curly1;
-    public AudioClip youGood_Zoey1;
-    public AudioClip youGood_Curly2;
-    public AudioClip youGood_Zoey2;
+    [Header("You Good")]
+    public ZoeyLine youGood_Curly1;
+    public ZoeyLine youGood_Zoey1;
+    public ZoeyLine youGood_Curly2;
+    public ZoeyLine youGood_Zoey2;
 
-    [Header("Should Get Moving Clips")]
-    public AudioClip moving_Curly1;
-    public AudioClip moving_Zoey1;
-    public AudioClip moving_Curly2;
-    public AudioClip moving_Zoey2;
+    [Header("Should Get Moving")]
+    public ZoeyLine moving_Curly1;
+    public ZoeyLine moving_Zoey1;
+    public ZoeyLine moving_Curly2;
+    public ZoeyLine moving_Zoey2;
 
-    [Header("Never Mind Clips")]
-    public AudioClip neverMind_Curly;
-    public AudioClip neverMind_Zoey;
+    [Header("Never Mind")]
+    public ZoeyLine neverMind_Curly;
+    public ZoeyLine neverMind_Zoey;
 
-    [Header("Use Zoey On Zoey Clips")]
-    public AudioClip useZoeyOnZoey_Curly1;
-    public AudioClip useZoeyOnZoey_Curly2;
-    public AudioClip useZoeyOnZoey_Zoey;
-    public AudioClip useZoeyOnZoey_Curly3;
+    [Header("Use Zoey On Zoey")]
+    public ZoeyLine useZoeyOnZoey_Curly1;
+    public ZoeyLine useZoeyOnZoey_Curly2;
+    public ZoeyLine useZoeyOnZoey_Zoey;
+    public ZoeyLine useZoeyOnZoey_Curly3;
 
     const float fallbackDuration = 3f;
 
@@ -148,86 +157,73 @@ public class ZoeyInteractable : MonoBehaviour, IInteractable
         zoeyAI.isPaused = false;
     }
 
-    float Duration(AudioClip clip)
+    // Plays a Curly line on the dialogue screen
+    IEnumerator SayCurly(ZoeyLine l)
     {
-        return clip != null ? clip.length : fallbackDuration;
+        if (string.IsNullOrEmpty(l.line)) yield break;
+        float dur = l.clip != null ? l.clip.length : fallbackDuration;
+        DialogueScreen.instance.SayCurly(l.line, dur, l.emotion);
+        yield return new WaitUntil(() => !DialogueScreen.instance.IsDisplaying());
+        yield return new WaitForSeconds(0.3f);
+    }
+
+    // Plays a Zoey line on the dialogue screen
+    IEnumerator SayZoey(ZoeyLine l)
+    {
+        if (string.IsNullOrEmpty(l.line)) yield break;
+        float dur = l.clip != null ? l.clip.length : fallbackDuration;
+        DialogueScreen.instance.SayZoey(l.line, dur, l.emotion);
+        yield return new WaitUntil(() => !DialogueScreen.instance.IsDisplaying());
+        yield return new WaitForSeconds(0.3f);
     }
 
     IEnumerator HowsItGoing()
     {
-        DialogueScreen.instance.SayCurly("How you holdin' up, Zo?", Duration(howsItGoing_Curly1));
-        yield return new WaitUntil(() => !DialogueScreen.instance.IsDisplaying());
-        yield return new WaitForSeconds(0.3f);
-        DialogueScreen.instance.SayZoey("Fine. Why, do I not look fine?", Duration(howsItGoing_Zoey1));
-        yield return new WaitUntil(() => !DialogueScreen.instance.IsDisplaying());
-        yield return new WaitForSeconds(0.3f);
-        DialogueScreen.instance.SayCurly("You look fine.", Duration(howsItGoing_Curly2));
-        yield return new WaitUntil(() => !DialogueScreen.instance.IsDisplaying());
-        yield return new WaitForSeconds(0.3f);
-        DialogueScreen.instance.SayZoey("Then why'd you ask.", Duration(howsItGoing_Zoey2));
-        yield return new WaitUntil(() => !DialogueScreen.instance.IsDisplaying());
-        yield return new WaitForSeconds(0.3f);
-        OpenTalkToZoey(); // reopen panel for another topic
+        yield return StartCoroutine(SayCurly(howsItGoing_Curly1));
+        yield return StartCoroutine(SayZoey(howsItGoing_Zoey1));
+        yield return StartCoroutine(SayCurly(howsItGoing_Curly2));
+        yield return StartCoroutine(SayZoey(howsItGoing_Zoey2));
+        OpenTalkToZoey();
     }
 
     IEnumerator YouDoingOkay()
     {
-        DialogueScreen.instance.SayCurly("You good?", Duration(youGood_Curly1));
-        yield return new WaitUntil(() => !DialogueScreen.instance.IsDisplaying());
-        yield return new WaitForSeconds(0.3f);
-        DialogueScreen.instance.SayZoey("Yeah. You?", Duration(youGood_Zoey1));
-        yield return new WaitUntil(() => !DialogueScreen.instance.IsDisplaying());
-        yield return new WaitForSeconds(0.3f);
-        DialogueScreen.instance.SayCurly("Yeah.", Duration(youGood_Curly2));
-        yield return new WaitUntil(() => !DialogueScreen.instance.IsDisplaying());
-        yield return new WaitForSeconds(0.3f);
-        DialogueScreen.instance.SayZoey("Cool.", Duration(youGood_Zoey2));
-        yield return new WaitUntil(() => !DialogueScreen.instance.IsDisplaying());
-        yield return new WaitForSeconds(0.3f);
-        OpenTalkToZoey(); // reopen panel for another topic
+        yield return StartCoroutine(SayCurly(youGood_Curly1));
+        yield return StartCoroutine(SayZoey(youGood_Zoey1));
+        yield return StartCoroutine(SayCurly(youGood_Curly2));
+        yield return StartCoroutine(SayZoey(youGood_Zoey2));
+        OpenTalkToZoey();
     }
 
     IEnumerator ShouldGetMoving()
     {
-        DialogueScreen.instance.SayCurly("We should probably move.", Duration(moving_Curly1));
-        yield return new WaitUntil(() => !DialogueScreen.instance.IsDisplaying());
-        yield return new WaitForSeconds(0.3f);
-        DialogueScreen.instance.SayZoey("I've been ready.", Duration(moving_Zoey1));
-        yield return new WaitUntil(() => !DialogueScreen.instance.IsDisplaying());
-        yield return new WaitForSeconds(0.3f);
-        DialogueScreen.instance.SayCurly("No you haven't.", Duration(moving_Curly2));
-        yield return new WaitUntil(() => !DialogueScreen.instance.IsDisplaying());
-        yield return new WaitForSeconds(0.3f);
-        DialogueScreen.instance.SayZoey("...No I haven't.", Duration(moving_Zoey2));
-        yield return new WaitUntil(() => !DialogueScreen.instance.IsDisplaying());
-        yield return new WaitForSeconds(0.3f);
-        OpenTalkToZoey(); // reopen panel for another topic
+        yield return StartCoroutine(SayCurly(moving_Curly1));
+        yield return StartCoroutine(SayZoey(moving_Zoey1));
+        yield return StartCoroutine(SayCurly(moving_Curly2));
+        yield return StartCoroutine(SayZoey(moving_Zoey2));
+        OpenTalkToZoey();
     }
 
     IEnumerator NeverMind()
     {
-        DialogueScreen.instance.SayCurly("Never mind.", Duration(neverMind_Curly));
-        yield return new WaitUntil(() => !DialogueScreen.instance.IsDisplaying());
-        yield return new WaitForSeconds(0.3f);
-        DialogueScreen.instance.SayZoey("Okay.", Duration(neverMind_Zoey));
-        yield return new WaitUntil(() => !DialogueScreen.instance.IsDisplaying());
-        yield return new WaitForSeconds(0.3f);
-        EndConversation(); // only "Never mind" actually closes everything
+        yield return StartCoroutine(SayCurly(neverMind_Curly));
+        yield return StartCoroutine(SayZoey(neverMind_Zoey));
+        EndConversation();
     }
 
     IEnumerator UseZoeyOnZoey()
     {
-        // UseZoey doesn't open the dialogue screen — stays as world-space labels
-        DialogueLabel.curlyLabel.Say("Hey Zo...", useZoeyOnZoey_Curly1);
+        // UseZoey stays as world-space labels — no dialogue screen
+        DialogueLabel.curlyLabel.Say(useZoeyOnZoey_Curly1.line, useZoeyOnZoey_Curly1.clip);
         yield return new WaitUntil(() => !DialogueLabel.curlyLabel.IsDisplaying());
         yield return new WaitForSeconds(0.3f);
-        DialogueLabel.curlyLabel.Say("What would you do if someone asked you to check yourself out?", useZoeyOnZoey_Curly2);
+        DialogueLabel.curlyLabel.Say(useZoeyOnZoey_Curly2.line, useZoeyOnZoey_Curly2.clip);
         yield return new WaitUntil(() => !DialogueLabel.curlyLabel.IsDisplaying());
         yield return new WaitForSeconds(0.3f);
-        DialogueLabel.zoeyLabel.Say("I'd tell them to mind their business.", useZoeyOnZoey_Zoey);
+        DialogueLabel.zoeyLabel.Say(useZoeyOnZoey_Zoey.line, useZoeyOnZoey_Zoey.clip);
         yield return new WaitUntil(() => !DialogueLabel.zoeyLabel.IsDisplaying());
         yield return new WaitForSeconds(0.3f);
-        DialogueLabel.curlyLabel.Say("Fair.", useZoeyOnZoey_Curly3);
+        DialogueLabel.curlyLabel.Say(useZoeyOnZoey_Curly3.line, useZoeyOnZoey_Curly3.clip);
         yield return new WaitUntil(() => !DialogueLabel.curlyLabel.IsDisplaying());
         yield return new WaitForSeconds(0.3f);
         zoeyAI.isPaused = false;
