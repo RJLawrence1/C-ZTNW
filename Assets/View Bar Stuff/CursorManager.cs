@@ -1,17 +1,11 @@
 using UnityEngine;
 using UnityEngine.UI;
 
-// Attach this script to any persistent GameObject in your scene (e.g. your GameManager or UI root).
-// Assign all the sprite slots in the Inspector, and drag in your controller cursor Image too.
-
 public class CursorManager : MonoBehaviour
 {
     public static CursorManager instance;
 
     [Header("Mouse Cursor Textures")]
-    // These must be Texture2D, not Sprite — import each as Texture2D in Unity,
-    // OR see the note below about converting from Sprite automatically.
-    // Easiest: in Unity, set Texture Type to "Cursor" for each cursor image.
     public Texture2D cursorDefault;
     public Texture2D cursorLookAt;
     public Texture2D cursorPickUp;
@@ -21,11 +15,9 @@ public class CursorManager : MonoBehaviour
     public Texture2D cursorUseZoey;
 
     [Header("Controller Cursor (UI Image)")]
-    // Drag in the Image component that acts as your on-screen controller cursor.
     public Image controllerCursorImage;
 
     [Header("Controller Cursor Sprites")]
-    // These are regular Sprites — same artwork, but used for the UI Image.
     public Sprite spriteDefault;
     public Sprite spriteLookAt;
     public Sprite spritePickUp;
@@ -34,12 +26,11 @@ public class CursorManager : MonoBehaviour
     public Sprite spriteInteract;
     public Sprite spriteUseZoey;
 
-    // The hotspot is the "active point" of the cursor — e.g. the tip of an arrow.
-    // Vector2.zero means the top-left corner of the texture is the click point,
-    // which is correct for a standard arrow. Adjust if your cursor art needs it.
     private Vector2 hotspot = Vector2.zero;
-
     private VerbManager.Verb lastVerb = VerbManager.Verb.None;
+
+    // True while the cursor is hovering over an interactable
+    private bool isHovering = false;
 
     void Awake()
     {
@@ -48,7 +39,6 @@ public class CursorManager : MonoBehaviour
 
     void Start()
     {
-        // Set the default cursor right away when the scene loads
         ApplyCursor(VerbManager.Verb.None);
     }
 
@@ -56,12 +46,27 @@ public class CursorManager : MonoBehaviour
     {
         if (VerbManager.instance == null) return;
 
-        // Only update when the verb actually changes — no need to set it every frame
-        if (VerbManager.instance.currentVerb != lastVerb)
+        // Only update when verb changes AND not hovering — hover handles its own cursor
+        if (!isHovering && VerbManager.instance.currentVerb != lastVerb)
         {
             lastVerb = VerbManager.instance.currentVerb;
             ApplyCursor(lastVerb);
         }
+    }
+
+    // Called by Interactable when the cursor enters a hotspot
+    public void SetHoverCursor()
+    {
+        isHovering = true;
+        lastVerb = VerbManager.instance != null ? VerbManager.instance.currentVerb : VerbManager.Verb.None;
+        ApplyCursor(lastVerb);
+    }
+
+    // Called by Interactable when the cursor leaves a hotspot
+    public void ResetHoverCursor()
+    {
+        isHovering = false;
+        ApplyCursor(VerbManager.Verb.None);
     }
 
     void ApplyCursor(VerbManager.Verb verb)
@@ -69,7 +74,6 @@ public class CursorManager : MonoBehaviour
         Texture2D mouseTex = cursorDefault;
         Sprite controllerSp = spriteDefault;
 
-        // Match each verb to its cursor pair
         switch (verb)
         {
             case VerbManager.Verb.LookAt:
@@ -96,21 +100,17 @@ public class CursorManager : MonoBehaviour
                 mouseTex = cursorUseZoey;
                 controllerSp = spriteUseZoey;
                 break;
-                // VerbManager.Verb.None falls through to the defaults set above
         }
 
-        // Apply to hardware mouse cursor
         Cursor.SetCursor(mouseTex, hotspot, CursorMode.Auto);
 
-        // Apply to controller cursor UI Image
         if (controllerCursorImage != null && controllerSp != null)
             controllerCursorImage.sprite = controllerSp;
     }
 
-    // Call this from anywhere if you need to force a cursor reset
-    // e.g. when opening the phone booth UI
     public void ResetToDefault()
     {
+        isHovering = false;
         Cursor.SetCursor(cursorDefault, hotspot, CursorMode.Auto);
         if (controllerCursorImage != null && spriteDefault != null)
             controllerCursorImage.sprite = spriteDefault;

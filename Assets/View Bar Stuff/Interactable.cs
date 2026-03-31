@@ -7,11 +7,9 @@ public class Interactable : MonoBehaviour, IInteractable
 {
     public string itemName = "Test Item";
 
-    // Tracks all picked-up item names across scene transitions
     public static System.Collections.Generic.HashSet<string> pickedUpItems
         = new System.Collections.Generic.HashSet<string>();
 
-    // Registry of item name -> sprite, so inventory can look up sprites after scene loads
     public static System.Collections.Generic.Dictionary<string, Sprite> spriteRegistry
         = new System.Collections.Generic.Dictionary<string, Sprite>();
 
@@ -53,7 +51,9 @@ public class Interactable : MonoBehaviour, IInteractable
     private bool hasInteracted = false;
     private bool isLockedOut = false;
 
-    // Cached references — avoids FindObjectOfType on every click
+    // Track whether cursor is currently hovering this object
+    private bool cursorIsOver = false;
+
     private CurlyMovement curly;
     private ZoeyAI zoey;
 
@@ -113,7 +113,6 @@ public class Interactable : MonoBehaviour, IInteractable
 
     void Awake()
     {
-        // Register sprite early so InventoryManager.Start can find it
         Sprite sprite = GetComponent<SpriteRenderer>() != null ? GetComponent<SpriteRenderer>().sprite : null;
         if (sprite != null)
             spriteRegistry[itemName] = sprite;
@@ -124,7 +123,6 @@ public class Interactable : MonoBehaviour, IInteractable
         curly = FindObjectOfType<CurlyMovement>();
         zoey = FindObjectOfType<ZoeyAI>();
 
-        // If this item was already picked up in a previous scene, hide it immediately
         if (pickedUpItems.Contains(itemName))
             gameObject.SetActive(false);
     }
@@ -145,8 +143,27 @@ public class Interactable : MonoBehaviour, IInteractable
         Vector2 hoverPos = Mouse.current.position.ReadValue();
         RaycastHit2D hoverHit = Physics2D.Raycast(Camera.main.ScreenToWorldPoint(hoverPos), Vector2.zero, Mathf.Infinity, iLayer);
 
-        if (hoverHit.collider != null && hoverHit.collider.gameObject == gameObject)
+        bool hoveringThis = hoverHit.collider != null && hoverHit.collider.gameObject == gameObject;
+
+        if (hoveringThis)
+        {
             HotspotLabel.instance.Show(itemName, transform.position);
+
+            // Show verb-specific cursor on hover
+            if (!cursorIsOver)
+            {
+                cursorIsOver = true;
+                if (CursorManager.instance != null)
+                    CursorManager.instance.SetHoverCursor();
+            }
+        }
+        else if (cursorIsOver)
+        {
+            // Cursor left this object — reset
+            cursorIsOver = false;
+            if (CursorManager.instance != null)
+                CursorManager.instance.ResetHoverCursor();
+        }
 
         if (Mouse.current.leftButton.wasPressedThisFrame)
         {
@@ -156,8 +173,6 @@ public class Interactable : MonoBehaviour, IInteractable
             if (hit.collider != null && hit.collider.gameObject == gameObject)
             {
                 if (isLockedOut) return;
-
-                // Don't allow new interactions while dialogue panel is open or a line is playing
                 if (DialogueManager.isInDialogue) return;
                 if (DialogueLabel.curlyLabel.IsDisplaying()) return;
 
@@ -166,6 +181,16 @@ public class Interactable : MonoBehaviour, IInteractable
                 else
                     curly.WalkToInteract(this);
             }
+        }
+    }
+
+    void OnDisable()
+    {
+        // Clean up cursor state if this object gets hidden mid-hover
+        if (cursorIsOver && CursorManager.instance != null)
+        {
+            cursorIsOver = false;
+            CursorManager.instance.ResetHoverCursor();
         }
     }
 
@@ -205,7 +230,6 @@ public class Interactable : MonoBehaviour, IInteractable
         Sprite sprite = GetComponent<SpriteRenderer>() != null ? GetComponent<SpriteRenderer>().sprite : null;
         Color color = GetComponent<SpriteRenderer>() != null ? GetComponent<SpriteRenderer>().color : Color.white;
         InventoryManager.instance.AddItem(itemName, sprite, color);
-        Debug.Log("InventoryData count after pickup: " + InventoryData.names.Count);
         pickedUpItems.Add(itemName);
         gameObject.SetActive(false);
     }
@@ -229,7 +253,6 @@ public class Interactable : MonoBehaviour, IInteractable
 
     public void OnItemUsed(string usedItemName)
     {
-        // If this interactable has an NPCDialogue, route to the trade system first
         NPCDialogue npcDialogue = GetComponent<NPCDialogue>();
         if (npcDialogue != null)
         {
@@ -237,7 +260,6 @@ public class Interactable : MonoBehaviour, IInteractable
             return;
         }
 
-        // Otherwise use the standard item response list
         foreach (ItemResponse response in itemResponses)
         {
             if (response.itemName == usedItemName)
@@ -265,7 +287,6 @@ public class Interactable : MonoBehaviour, IInteractable
                     DialogueLabel.curlyLabel.Say("That's a " + itemName + ".");
                 else
                 {
-                    int i = lookAtCount;
                     string line = GetFailLine(lookAtFails, lookAtFailClips, ref lookAtCount);
                     DialogueLabel.curlyLabel.Say(line, GetFailClip(lookAtFailClips, lookAtCount));
                 }
