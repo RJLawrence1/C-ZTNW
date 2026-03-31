@@ -106,6 +106,15 @@ public class PhoneBoothUI : MonoBehaviour
         // Always reset on scene load
         isInPhoneBooth = false;
 
+        // Set era from scene name if we didn't arrive via time travel
+        if (!arrivedViaTimeTravel)
+        {
+            string sceneName = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name;
+            if (sceneName.Contains("1957")) currentEra = "1957";
+            else if (sceneName.Contains("1987")) currentEra = "1987";
+            else if (sceneName.Contains("2017")) currentEra = "2017";
+        }
+
         // Only teleport to booth spawn if we arrived via time travel
         if (arrivedViaTimeTravel)
         {
@@ -146,9 +155,21 @@ public class PhoneBoothUI : MonoBehaviour
                 if (arrivalClip != null)
                     audioSource.PlayOneShot(arrivalClip);
 
-                // Step them out of the booth
-                StartCoroutine(booth.ExitBoothSequence());
+                // Step them out of the booth, then make sure Zoey is fully released
+                StartCoroutine(ExitAndReleaseZoey(booth, zoey));
             }
+        }
+    }
+
+    IEnumerator ExitAndReleaseZoey(PhoneBooth booth, ZoeyAI zoey)
+    {
+        yield return StartCoroutine(booth.ExitBoothSequence());
+
+        // Make absolutely sure Zoey is unpaused and wandering after the exit sequence
+        if (zoey != null)
+        {
+            zoey.isPaused = false;
+            zoey.StopAndStay();
         }
     }
 
