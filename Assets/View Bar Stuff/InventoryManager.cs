@@ -184,24 +184,21 @@ public class InventoryManager : MonoBehaviour
 
     void OnSlotClicked(int index)
     {
-        if (draggingIndex >= 0) return; // Don't fire at end of a drag
+        if (draggingIndex >= 0) return;
         if (index >= itemNames.Count || itemNames[index] == null || itemNames[index] == "") return;
 
         if (selectedForCombine < 0)
         {
-            // Nothing selected — select this slot
             selectedForCombine = index;
             RefreshSlotHighlights();
         }
         else if (selectedForCombine == index)
         {
-            // Clicked same slot — deselect
             selectedForCombine = -1;
             RefreshSlotHighlights();
         }
         else
         {
-            // Second slot — try combine
             TryCombineSlots(selectedForCombine, index);
             selectedForCombine = -1;
             RefreshSlotHighlights();
@@ -250,7 +247,6 @@ public class InventoryManager : MonoBehaviour
         }
     }
 
-    // Called by ControllerCursor for controller combining
     public void TryCombineFromController(int indexA, int indexB)
     {
         TryCombineSlots(indexA, indexB);
@@ -261,6 +257,8 @@ public class InventoryManager : MonoBehaviour
     void Update()
     {
         if (PhoneBoothUI.isInPhoneBooth) return;
+        if (DialogueManager.isInDialogue) return; // block during dialogue
+
         if (Keyboard.current.eKey.wasPressedThisFrame)
             ToggleInventory();
 
@@ -270,6 +268,13 @@ public class InventoryManager : MonoBehaviour
 
     public void ToggleInventory()
     {
+        // Don't open during dialogue — if already open, close it
+        if (DialogueManager.isInDialogue)
+        {
+            if (isOpen) ForceClose();
+            return;
+        }
+
         isOpen = !isOpen;
         inventoryPanel.SetActive(isOpen);
         inventoryHighlight.color = isOpen ? new Color(0f, 0.5f, 1f, 0.5f) : Color.clear;
@@ -280,6 +285,18 @@ public class InventoryManager : MonoBehaviour
             if (ItemCursor.hasSelectedItem)
                 ItemCursor.instance.ClearSelection();
         }
+    }
+
+    // Force close without toggling — used when dialogue starts mid-inventory
+    public void ForceClose()
+    {
+        isOpen = false;
+        inventoryPanel.SetActive(false);
+        inventoryHighlight.color = Color.clear;
+        selectedForCombine = -1;
+        CleanupDrag();
+        if (ItemCursor.hasSelectedItem)
+            ItemCursor.instance.ClearSelection();
     }
 
     // ── Item Management ─────────────────────────────────────────
@@ -327,7 +344,6 @@ public class InventoryManager : MonoBehaviour
             }
             else
             {
-                // No sprite — just show the color so the slot isn't invisible
                 slots[i].sprite = null;
                 slots[i].color = itemColors[i];
             }
