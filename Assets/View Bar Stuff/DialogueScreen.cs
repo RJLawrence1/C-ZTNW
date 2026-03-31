@@ -16,6 +16,7 @@ public class DialogueScreen : MonoBehaviour
     [Header("Dialogue Text")]
     public TextMeshProUGUI curlyDialogueText;
     public TextMeshProUGUI npcDialogueText;
+    public TextMeshProUGUI zoeyDialogueText;
     public float displayTime = 3f;
 
     [Header("Curly Portrait")]
@@ -23,6 +24,7 @@ public class DialogueScreen : MonoBehaviour
 
     private Coroutine curlyClearRoutine;
     private Coroutine npcClearRoutine;
+    private Coroutine zoeyClearRoutine;
 
     void Awake()
     {
@@ -30,43 +32,47 @@ public class DialogueScreen : MonoBehaviour
         screenPanel.SetActive(false);
     }
 
-    // Call this when a conversation starts
     public void Show(string npcName, Sprite npcSprite, Color npcNameColor)
     {
-        // Set Curly's portrait
         if (curlyPortrait != null && curlySprite != null)
             curlyPortrait.sprite = curlySprite;
 
-        // Set NPC portrait
         if (npcPortrait != null)
         {
             npcPortrait.sprite = npcSprite;
             npcPortrait.color = npcSprite != null ? Color.white : new Color(1f, 1f, 1f, 0.3f);
         }
 
-        // Set NPC name
         if (npcNameText != null)
         {
             npcNameText.text = npcName;
             npcNameText.color = npcNameColor;
         }
 
-        // Clear any leftover text
         if (curlyDialogueText != null) curlyDialogueText.text = "";
         if (npcDialogueText != null) npcDialogueText.text = "";
+        if (zoeyDialogueText != null) zoeyDialogueText.text = "";
 
         screenPanel.SetActive(true);
     }
 
-    // Call this when conversation ends
     public void Hide()
     {
         if (curlyDialogueText != null) curlyDialogueText.text = "";
         if (npcDialogueText != null) npcDialogueText.text = "";
+        if (zoeyDialogueText != null) zoeyDialogueText.text = "";
         screenPanel.SetActive(false);
     }
 
-    // Show a line above Curly's portrait — duration driven by clip or displayTime
+    // Returns true while any line is still showing — use this in WaitUntil checks
+    public bool IsDisplaying()
+    {
+        bool curlyShowing = curlyDialogueText != null && curlyDialogueText.text != "";
+        bool npcShowing = npcDialogueText != null && npcDialogueText.text != "";
+        bool zoeyShowing = zoeyDialogueText != null && zoeyDialogueText.text != "";
+        return curlyShowing || npcShowing || zoeyShowing;
+    }
+
     public void SayCurly(string line, float duration)
     {
         if (curlyDialogueText == null) return;
@@ -75,13 +81,20 @@ public class DialogueScreen : MonoBehaviour
         curlyClearRoutine = StartCoroutine(ClearAfter(curlyDialogueText, duration));
     }
 
-    // Show a line above the NPC portrait — duration driven by clip or displayTime
     public void SayNPC(string line, float duration)
     {
         if (npcDialogueText == null) return;
         npcDialogueText.text = line;
         if (npcClearRoutine != null) StopCoroutine(npcClearRoutine);
         npcClearRoutine = StartCoroutine(ClearAfter(npcDialogueText, duration));
+    }
+
+    public void SayZoey(string line, float duration)
+    {
+        if (zoeyDialogueText == null) return;
+        zoeyDialogueText.text = line;
+        if (zoeyClearRoutine != null) StopCoroutine(zoeyClearRoutine);
+        zoeyClearRoutine = StartCoroutine(ClearAfter(zoeyDialogueText, duration));
     }
 
     IEnumerator ClearAfter(TextMeshProUGUI text, float duration)

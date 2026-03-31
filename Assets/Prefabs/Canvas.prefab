@@ -9677,6 +9677,7 @@ MonoBehaviour:
   npcNameText: {fileID: 7999081565487484641}
   curlyDialogueText: {fileID: 178319953329939254}
   npcDialogueText: {fileID: 1361407943132749399}
+  zoeyDialogueText: {fileID: 7099438197236310182}
   displayTime: 3
   curlySprite: {fileID: 0}
 --- !u!1 &7796731396181644359

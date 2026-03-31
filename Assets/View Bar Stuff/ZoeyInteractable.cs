@@ -7,6 +7,10 @@ public class ZoeyInteractable : MonoBehaviour, IInteractable
     private ZoeyAI zoeyAI;
     private CurlyMovement curly;
 
+    [Header("Zoey Portrait")]
+    public Sprite zoeyPortrait;
+    public Color zoeyNameColor = new Color(1f, 0.5f, 0.8f); // pink to match her label
+
     [Header("Verb Response Clips")]
     public AudioClip lookAtClip;
     public AudioClip pickUpClip;
@@ -40,6 +44,9 @@ public class ZoeyInteractable : MonoBehaviour, IInteractable
     public AudioClip useZoeyOnZoey_Curly2;
     public AudioClip useZoeyOnZoey_Zoey;
     public AudioClip useZoeyOnZoey_Curly3;
+
+    // How long a line stays on screen if no audio clip is assigned
+    const float fallbackDuration = 3f;
 
     void Start()
     {
@@ -114,6 +121,9 @@ public class ZoeyInteractable : MonoBehaviour, IInteractable
 
     void OpenTalkToZoey()
     {
+        if (DialogueScreen.instance != null)
+            DialogueScreen.instance.Show("Zoey", zoeyPortrait, zoeyNameColor);
+
         string[] options = {
             "How you holdin' up?",
             "You good?",
@@ -131,70 +141,85 @@ public class ZoeyInteractable : MonoBehaviour, IInteractable
         DialogueManager.instance.ShowDialogue(options, actions);
     }
 
+    void EndConversation()
+    {
+        if (DialogueScreen.instance != null)
+            DialogueScreen.instance.Hide();
+
+        zoeyAI.isPaused = false;
+    }
+
+    // Helper: how long to display a line — uses clip length if available, fallback otherwise
+    float Duration(AudioClip clip)
+    {
+        return clip != null ? clip.length : fallbackDuration;
+    }
+
     IEnumerator HowsItGoing()
     {
-        DialogueLabel.curlyLabel.Say("How you holdin' up, Zo?", howsItGoing_Curly1);
-        yield return new WaitUntil(() => !DialogueLabel.curlyLabel.IsDisplaying());
+        DialogueScreen.instance.SayCurly("How you holdin' up, Zo?", Duration(howsItGoing_Curly1));
+        yield return new WaitUntil(() => !DialogueScreen.instance.IsDisplaying());
         yield return new WaitForSeconds(0.3f);
-        DialogueLabel.zoeyLabel.Say("Fine. Why, do I not look fine?", howsItGoing_Zoey1);
-        yield return new WaitUntil(() => !DialogueLabel.zoeyLabel.IsDisplaying());
+        DialogueScreen.instance.SayZoey("Fine. Why, do I not look fine?", Duration(howsItGoing_Zoey1));
+        yield return new WaitUntil(() => !DialogueScreen.instance.IsDisplaying());
         yield return new WaitForSeconds(0.3f);
-        DialogueLabel.curlyLabel.Say("You look fine.", howsItGoing_Curly2);
-        yield return new WaitUntil(() => !DialogueLabel.curlyLabel.IsDisplaying());
+        DialogueScreen.instance.SayCurly("You look fine.", Duration(howsItGoing_Curly2));
+        yield return new WaitUntil(() => !DialogueScreen.instance.IsDisplaying());
         yield return new WaitForSeconds(0.3f);
-        DialogueLabel.zoeyLabel.Say("Then why'd you ask.", howsItGoing_Zoey2);
-        yield return new WaitUntil(() => !DialogueLabel.zoeyLabel.IsDisplaying());
+        DialogueScreen.instance.SayZoey("Then why'd you ask.", Duration(howsItGoing_Zoey2));
+        yield return new WaitUntil(() => !DialogueScreen.instance.IsDisplaying());
         yield return new WaitForSeconds(0.3f);
-        zoeyAI.isPaused = false;
+        EndConversation();
     }
 
     IEnumerator YouDoingOkay()
     {
-        DialogueLabel.curlyLabel.Say("You good?", youGood_Curly1);
-        yield return new WaitUntil(() => !DialogueLabel.curlyLabel.IsDisplaying());
+        DialogueScreen.instance.SayCurly("You good?", Duration(youGood_Curly1));
+        yield return new WaitUntil(() => !DialogueScreen.instance.IsDisplaying());
         yield return new WaitForSeconds(0.3f);
-        DialogueLabel.zoeyLabel.Say("Yeah. You?", youGood_Zoey1);
-        yield return new WaitUntil(() => !DialogueLabel.zoeyLabel.IsDisplaying());
+        DialogueScreen.instance.SayZoey("Yeah. You?", Duration(youGood_Zoey1));
+        yield return new WaitUntil(() => !DialogueScreen.instance.IsDisplaying());
         yield return new WaitForSeconds(0.3f);
-        DialogueLabel.curlyLabel.Say("Yeah.", youGood_Curly2);
-        yield return new WaitUntil(() => !DialogueLabel.curlyLabel.IsDisplaying());
+        DialogueScreen.instance.SayCurly("Yeah.", Duration(youGood_Curly2));
+        yield return new WaitUntil(() => !DialogueScreen.instance.IsDisplaying());
         yield return new WaitForSeconds(0.3f);
-        DialogueLabel.zoeyLabel.Say("Cool.", youGood_Zoey2);
-        yield return new WaitUntil(() => !DialogueLabel.zoeyLabel.IsDisplaying());
+        DialogueScreen.instance.SayZoey("Cool.", Duration(youGood_Zoey2));
+        yield return new WaitUntil(() => !DialogueScreen.instance.IsDisplaying());
         yield return new WaitForSeconds(0.3f);
-        zoeyAI.isPaused = false;
+        EndConversation();
     }
 
     IEnumerator ShouldGetMoving()
     {
-        DialogueLabel.curlyLabel.Say("We should probably move.", moving_Curly1);
-        yield return new WaitUntil(() => !DialogueLabel.curlyLabel.IsDisplaying());
+        DialogueScreen.instance.SayCurly("We should probably move.", Duration(moving_Curly1));
+        yield return new WaitUntil(() => !DialogueScreen.instance.IsDisplaying());
         yield return new WaitForSeconds(0.3f);
-        DialogueLabel.zoeyLabel.Say("I've been ready.", moving_Zoey1);
-        yield return new WaitUntil(() => !DialogueLabel.zoeyLabel.IsDisplaying());
+        DialogueScreen.instance.SayZoey("I've been ready.", Duration(moving_Zoey1));
+        yield return new WaitUntil(() => !DialogueScreen.instance.IsDisplaying());
         yield return new WaitForSeconds(0.3f);
-        DialogueLabel.curlyLabel.Say("No you haven't.", moving_Curly2);
-        yield return new WaitUntil(() => !DialogueLabel.curlyLabel.IsDisplaying());
+        DialogueScreen.instance.SayCurly("No you haven't.", Duration(moving_Curly2));
+        yield return new WaitUntil(() => !DialogueScreen.instance.IsDisplaying());
         yield return new WaitForSeconds(0.3f);
-        DialogueLabel.zoeyLabel.Say("...No I haven't.", moving_Zoey2);
-        yield return new WaitUntil(() => !DialogueLabel.zoeyLabel.IsDisplaying());
+        DialogueScreen.instance.SayZoey("...No I haven't.", Duration(moving_Zoey2));
+        yield return new WaitUntil(() => !DialogueScreen.instance.IsDisplaying());
         yield return new WaitForSeconds(0.3f);
-        zoeyAI.isPaused = false;
+        EndConversation();
     }
 
     IEnumerator NeverMind()
     {
-        DialogueLabel.curlyLabel.Say("Never mind.", neverMind_Curly);
-        yield return new WaitUntil(() => !DialogueLabel.curlyLabel.IsDisplaying());
+        DialogueScreen.instance.SayCurly("Never mind.", Duration(neverMind_Curly));
+        yield return new WaitUntil(() => !DialogueScreen.instance.IsDisplaying());
         yield return new WaitForSeconds(0.3f);
-        DialogueLabel.zoeyLabel.Say("Okay.", neverMind_Zoey);
-        yield return new WaitUntil(() => !DialogueLabel.zoeyLabel.IsDisplaying());
+        DialogueScreen.instance.SayZoey("Okay.", Duration(neverMind_Zoey));
+        yield return new WaitUntil(() => !DialogueScreen.instance.IsDisplaying());
         yield return new WaitForSeconds(0.3f);
-        zoeyAI.isPaused = false;
+        EndConversation();
     }
 
     IEnumerator UseZoeyOnZoey()
     {
+        // UseZoey doesn't open the dialogue screen — stays as world-space labels
         DialogueLabel.curlyLabel.Say("Hey Zo...", useZoeyOnZoey_Curly1);
         yield return new WaitUntil(() => !DialogueLabel.curlyLabel.IsDisplaying());
         yield return new WaitForSeconds(0.3f);
