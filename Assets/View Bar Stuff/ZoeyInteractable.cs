@@ -45,7 +45,6 @@ public class ZoeyInteractable : MonoBehaviour, IInteractable
     public AudioClip useZoeyOnZoey_Zoey;
     public AudioClip useZoeyOnZoey_Curly3;
 
-    // How long a line stays on screen if no audio clip is assigned
     const float fallbackDuration = 3f;
 
     void Start()
@@ -149,7 +148,6 @@ public class ZoeyInteractable : MonoBehaviour, IInteractable
         zoeyAI.isPaused = false;
     }
 
-    // Helper: how long to display a line — uses clip length if available, fallback otherwise
     float Duration(AudioClip clip)
     {
         return clip != null ? clip.length : fallbackDuration;
@@ -169,7 +167,7 @@ public class ZoeyInteractable : MonoBehaviour, IInteractable
         DialogueScreen.instance.SayZoey("Then why'd you ask.", Duration(howsItGoing_Zoey2));
         yield return new WaitUntil(() => !DialogueScreen.instance.IsDisplaying());
         yield return new WaitForSeconds(0.3f);
-        EndConversation();
+        OpenTalkToZoey(); // reopen panel for another topic
     }
 
     IEnumerator YouDoingOkay()
@@ -186,7 +184,7 @@ public class ZoeyInteractable : MonoBehaviour, IInteractable
         DialogueScreen.instance.SayZoey("Cool.", Duration(youGood_Zoey2));
         yield return new WaitUntil(() => !DialogueScreen.instance.IsDisplaying());
         yield return new WaitForSeconds(0.3f);
-        EndConversation();
+        OpenTalkToZoey(); // reopen panel for another topic
     }
 
     IEnumerator ShouldGetMoving()
@@ -203,7 +201,7 @@ public class ZoeyInteractable : MonoBehaviour, IInteractable
         DialogueScreen.instance.SayZoey("...No I haven't.", Duration(moving_Zoey2));
         yield return new WaitUntil(() => !DialogueScreen.instance.IsDisplaying());
         yield return new WaitForSeconds(0.3f);
-        EndConversation();
+        OpenTalkToZoey(); // reopen panel for another topic
     }
 
     IEnumerator NeverMind()
@@ -214,7 +212,7 @@ public class ZoeyInteractable : MonoBehaviour, IInteractable
         DialogueScreen.instance.SayZoey("Okay.", Duration(neverMind_Zoey));
         yield return new WaitUntil(() => !DialogueScreen.instance.IsDisplaying());
         yield return new WaitForSeconds(0.3f);
-        EndConversation();
+        EndConversation(); // only "Never mind" actually closes everything
     }
 
     IEnumerator UseZoeyOnZoey()
