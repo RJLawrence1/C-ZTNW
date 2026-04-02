@@ -230,6 +230,7 @@ public class Interactable : MonoBehaviour, IInteractable
         Sprite sprite = GetComponent<SpriteRenderer>() != null ? GetComponent<SpriteRenderer>().sprite : null;
         Color color = GetComponent<SpriteRenderer>() != null ? GetComponent<SpriteRenderer>().color : Color.white;
         InventoryManager.instance.AddItem(itemName, sprite, color);
+        if (RumbleManager.instance != null) RumbleManager.instance.Rumble();
         pickedUpItems.Add(itemName);
         gameObject.SetActive(false);
     }
@@ -331,7 +332,10 @@ public class Interactable : MonoBehaviour, IInteractable
                 break;
             case VerbManager.Verb.Interact:
                 if (canInteract)
+                {
+                    if (RumbleManager.instance != null) RumbleManager.instance.Rumble();
                     DialogueLabel.curlyLabel.Say("Alright.");
+                }
                 else
                 {
                     string line = GetFailLine(interactFails, interactFailClips, ref interactCount);

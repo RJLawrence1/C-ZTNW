@@ -19,6 +19,7 @@ public class SceneDoor : MonoBehaviour
             isOnCooldown = true;
             movementLocked = true;
             curly.CancelMovement();
+            SaveManager.QueueAutoSave();
             SceneTransition.instance.GoToScene(targetScene, spawnDoorTag);
         }
     }

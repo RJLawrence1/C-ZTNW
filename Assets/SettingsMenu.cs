@@ -470,13 +470,13 @@ public class SettingsMenu : MonoBehaviour
     void OnSave()
     {
         CloseSettings();
-        SaveManager.instance.SaveGame();
+        SaveManager.instance.OpenSavePanel();
     }
 
     void OnLoad()
     {
         CloseSettings();
-        SaveManager.instance.LoadGame();
+        SaveManager.instance.OpenLoadPanel();
     }
 
     void OpenOptions()

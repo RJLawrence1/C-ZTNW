@@ -14,6 +14,9 @@ public class SceneTransition : MonoBehaviour
     // Set this before a scene load to hold on black before fading in
     public static float holdTime = 0f;
 
+    // True while a fade is in progress — SaveManager waits for this to clear
+    public static bool isFading = false;
+
     void Awake()
     {
         // If an instance already exists from a previous scene, destroy this
@@ -115,6 +118,7 @@ public class SceneTransition : MonoBehaviour
 
     IEnumerator FadeOut()
     {
+        isFading = true;
         Color c = fadeImage.color;
         while (c.a < 1f)
         {
@@ -126,6 +130,7 @@ public class SceneTransition : MonoBehaviour
 
     IEnumerator FadeIn()
     {
+        isFading = true;
         Color c = fadeImage.color;
         c.a = 1f;
         fadeImage.color = c;
@@ -135,5 +140,6 @@ public class SceneTransition : MonoBehaviour
             fadeImage.color = c;
             yield return null;
         }
+        isFading = false;
     }
 }

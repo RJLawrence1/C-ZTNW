@@ -15,6 +15,7 @@ GameObject:
   - component: {fileID: 4334935626284836913}
   - component: {fileID: 3527727656425185348}
   - component: {fileID: 9175241602600070667}
+  - component: {fileID: 106174901311772366}
   m_Layer: 0
   m_Name: GameManager
   m_TagString: Untagged
@@ -69,6 +70,21 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SaveManager
   notificationText: {fileID: 0}
+  saveSlotPanel: {fileID: 0}
+  slotAutoButton: {fileID: 0}
+  slotAutoLabel: {fileID: 0}
+  slotAutoInfo: {fileID: 0}
+  slot1Button: {fileID: 0}
+  slot1Label: {fileID: 0}
+  slot1Info: {fileID: 0}
+  slot2Button: {fileID: 0}
+  slot2Label: {fileID: 0}
+  slot2Info: {fileID: 0}
+  slot3Button: {fileID: 0}
+  slot3Label: {fileID: 0}
+  slot3Info: {fileID: 0}
+  backButton: {fileID: 0}
+  deleteButton: {fileID: 0}
   defaultItemSprite: {fileID: 7482667652216324306, guid: 311925a002f4447b3a28927169b83ea6, type: 3}
   saveEasterEggClip: {fileID: 0}
   loadDialogue_Curly1: {fileID: 0}
@@ -162,3 +178,15 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::FPSCounter
   fpsText: {fileID: 0}
+--- !u!114 &106174901311772366
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4854169028328746335}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6254bf90240d89b408e3c336cdb69beb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::RumbleManager
