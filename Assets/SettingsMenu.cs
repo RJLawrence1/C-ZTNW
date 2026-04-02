@@ -136,8 +136,13 @@ public class SettingsMenu : MonoBehaviour
 
         for (int i = 0; i < availableResolutions.Length; i++)
         {
-            // Filter out anything below 800x600 — CRT monitor minimum
-            if (availableResolutions[i].width < 800 || availableResolutions[i].height < 600)
+            // Filter out anything below 1024x576
+            if (availableResolutions[i].width < 1024 || availableResolutions[i].height < 576)
+                continue;
+
+            // Filter to 16:9 only
+            float aspect = (float)availableResolutions[i].width / availableResolutions[i].height;
+            if (Mathf.Abs(aspect - (16f / 9f)) > 0.05f)
                 continue;
 
             string option = availableResolutions[i].width + " x " + availableResolutions[i].height;
