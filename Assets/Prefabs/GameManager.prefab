@@ -14,6 +14,7 @@ GameObject:
   - component: {fileID: 6895171124018819939}
   - component: {fileID: 4334935626284836913}
   - component: {fileID: 3527727656425185348}
+  - component: {fileID: 9175241602600070667}
   m_Layer: 0
   m_Name: GameManager
   m_TagString: Untagged
@@ -69,6 +70,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::SaveManager
   notificationText: {fileID: 0}
   defaultItemSprite: {fileID: 7482667652216324306, guid: 311925a002f4447b3a28927169b83ea6, type: 3}
+  saveEasterEggClip: {fileID: 0}
+  loadDialogue_Curly1: {fileID: 0}
+  loadDialogue_Curly2: {fileID: 0}
+  loadDialogue_Zoey: {fileID: 0}
+  loadDialogue_Curly3: {fileID: 0}
 --- !u!114 &6895171124018819939
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -127,6 +133,8 @@ MonoBehaviour:
   itemNames: []
   itemColors: []
   isOpen: 0
+  combineSuccessClip: {fileID: 0}
+  combineFailClip: {fileID: 0}
 --- !u!114 &3527727656425185348
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -141,3 +149,16 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CombinationDatabase
   combinations:
   - {fileID: 11400000, guid: 04a825265cb8d2548a866a82942b68c8, type: 2}
+--- !u!114 &9175241602600070667
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4854169028328746335}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fb454a06974017e4baf8702f841ae16e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::FPSCounter
+  fpsText: {fileID: 0}

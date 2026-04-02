@@ -22,7 +22,7 @@ public class IntroSequence : MonoBehaviour
 
     [Header("Boot Audio")]
     public AudioSource bootAudioSource;
-    public AudioClip bootAudioClip; // 17 second boot sound
+    public AudioClip bootAudioClip;
 
     [Header("OS Load Screen")]
     public GameObject osPanel;
@@ -35,8 +35,8 @@ public class IntroSequence : MonoBehaviour
     [Header("Logo Screen")]
     public GameObject logoPanel;
     public Image starfield;
-    public Image gupworksLogo;          // The big centered logo — stays put
-    public float centerLogoSize = 350f; // Size of the center logo
+    public Image gupworksLogo;
+    public float centerLogoSize = 350f;
 
     [Header("Audio")]
     public AudioSource musicSource;
@@ -45,26 +45,132 @@ public class IntroSequence : MonoBehaviour
     [Header("Fade")]
     public Image fadeImage;
 
+    [Header("Skip")]
+    public TextMeshProUGUI skipText; // assign a TMP text at bottom center of Canvas
+    public float skipHoldTime = 3f;
+
     [Header("Timing")]
-    public float charDelay = 0.03f;     // Speed of text typewriter effect
-    public float lineDelay = 0.4f;      // Pause between lines
-    public float logoScreenTime = 6f;   // How long the logo screen plays
-    public int logoCount = 14;          // How many logos float around (12-16)
+    public float charDelay = 0.03f;
+    public float lineDelay = 0.4f;
+    public float logoScreenTime = 6f;
+    public int logoCount = 14;
 
     private List<RectTransform> floatingLogos = new List<RectTransform>();
+    private bool introSkipped = false;
+    private float skipHoldTimer = 0f;
 
     void Start()
     {
-        // Hide everything at start
         devNotePanel.SetActive(false);
         bootPanel.SetActive(false);
         osPanel.SetActive(false);
         logoPanel.SetActive(false);
 
-        // Start fully faded to black
-        SetFade(1f);
+        if (skipText != null) skipText.text = "";
 
+        SetFade(1f);
         StartCoroutine(RunIntro());
+    }
+
+    void Update()
+    {
+        if (introSkipped) return;
+
+        // Ignore skip during dev note — it has its own input handling
+        if (devNotePanel != null && devNotePanel.activeSelf) return;
+
+        if (Keyboard.current.spaceKey.isPressed)
+        {
+            skipHoldTimer += Time.deltaTime;
+
+            // Show progress text
+            if (skipText != null)
+            {
+                int dots = Mathf.FloorToInt((skipHoldTimer / skipHoldTime) * 3f) + 1;
+                dots = Mathf.Clamp(dots, 1, 3);
+                skipText.text = "Skipping intro" + new string('.', dots);
+            }
+
+            if (skipHoldTimer >= skipHoldTime)
+                SkipIntro();
+        }
+        else
+        {
+            // Reset if released
+            skipHoldTimer = 0f;
+            if (skipText != null) skipText.text = "";
+        }
+    }
+
+    void SkipIntro()
+    {
+        introSkipped = true;
+        keepSpawning = false;
+        StopAllCoroutines();
+
+        if (skipText != null) skipText.text = "";
+        if (bootAudioSource != null) bootAudioSource.Stop();
+        if (musicSource != null) musicSource.Stop();
+
+        SetFade(1f);
+        SceneManager.LoadScene(nextScene);
+    }
+
+    IEnumerator RunIntro()
+    {
+        yield return StartCoroutine(ShowDevNote());
+        if (introSkipped) yield break;
+
+        if (bootAudioSource != null && bootAudioClip != null)
+        {
+            bootAudioSource.clip = bootAudioClip;
+            bootAudioSource.Play();
+        }
+
+        logoPanel.SetActive(true);
+        Color starColor = starfield.color;
+        starColor.a = 1f;
+        starfield.color = starColor;
+        gupworksLogo.color = new Color(1f, 1f, 1f, 1f);
+        StartCoroutine(FloatLogo());
+
+        SetFade(1f);
+        bootPanel.SetActive(true);
+        bootText.text = "";
+        SetFade(0f);
+
+        yield return StartCoroutine(PlayBootSequence());
+        if (introSkipped) yield break;
+
+        bootPanel.SetActive(false);
+        osPanel.SetActive(true);
+        osText.text = "";
+        osLoadBar.fillAmount = 0f;
+
+        yield return StartCoroutine(PlayOSSequence());
+        if (introSkipped) yield break;
+
+        yield return new WaitForSeconds(0.5f);
+
+        yield return StartCoroutine(FadeOut());
+        osPanel.SetActive(false);
+
+        StartCoroutine(FadeIn(0.5f));
+        yield return new WaitForSeconds(0.5f);
+
+        if (musicSource != null && logoCue != null)
+        {
+            musicSource.clip = logoCue;
+            musicSource.Play();
+        }
+
+        yield return new WaitForSeconds(1.5f);
+        yield return new WaitForSeconds(logoScreenTime);
+        if (introSkipped) yield break;
+
+        keepSpawning = false;
+        yield return StartCoroutine(FadeOut());
+        SceneManager.LoadScene(nextScene);
     }
 
     IEnumerator ShowDevNote()
@@ -73,10 +179,7 @@ public class IntroSequence : MonoBehaviour
         devNoteText.color = new Color(1f, 1f, 1f, 1f);
         devNoteText.text = "";
 
-        // Fade in from black first
         yield return StartCoroutine(FadeIn());
-
-        // Small delay so any keypress from starting Play mode doesn't instantly skip
         yield return new WaitForSeconds(0.3f);
 
         string[] lines = {
@@ -111,10 +214,11 @@ public class IntroSequence : MonoBehaviour
 
         foreach (string line in lines)
         {
+            if (introSkipped) yield break;
+
             if (line == null)
             {
                 devNoteText.text += "\n";
-                // During paragraph pause, check for skip
                 float pauseTimer = 0f;
                 while (pauseTimer < 1f)
                 {
@@ -132,6 +236,7 @@ public class IntroSequence : MonoBehaviour
             {
                 foreach (char c in line)
                 {
+                    if (introSkipped) yield break;
                     if (Input.anyKeyDown || Mouse.current.leftButton.wasPressedThisFrame)
                     {
                         skipped = true;
@@ -145,7 +250,6 @@ public class IntroSequence : MonoBehaviour
             }
         }
 
-        // If skipped mid-way, dump the rest of the text instantly
         if (skipped)
         {
             devNoteText.text =
@@ -169,18 +273,17 @@ public class IntroSequence : MonoBehaviour
                 "— Robert Lawrence\n" +
                 "   Fictional CEO, GupWorks Interactive";
 
-            // Wait for one more keypress to dismiss after showing full text
             yield return new WaitForSeconds(0.3f);
-            yield return new WaitUntil(() => Input.anyKeyDown || Mouse.current.leftButton.wasPressedThisFrame);
+            yield return new WaitUntil(() => introSkipped || Input.anyKeyDown || Mouse.current.leftButton.wasPressedThisFrame);
         }
         else
         {
-            // Fully typed — hold then wait for dismiss
             yield return new WaitForSeconds(1f);
-            yield return new WaitUntil(() => Input.anyKeyDown || Mouse.current.leftButton.wasPressedThisFrame);
+            yield return new WaitUntil(() => introSkipped || Input.anyKeyDown || Mouse.current.leftButton.wasPressedThisFrame);
         }
 
-        // Fade out
+        if (introSkipped) yield break;
+
         yield return StartCoroutine(FadeImageAlpha(devNoteText, 1f, 0f));
         devNotePanel.SetActive(false);
     }
@@ -201,81 +304,14 @@ public class IntroSequence : MonoBehaviour
         tmp.color = c;
     }
 
-    IEnumerator RunIntro()
-    {
-        // Dev note first — fade in, wait for keypress, fade out
-        yield return StartCoroutine(ShowDevNote());
-
-        // Start boot audio immediately — plays across both boot and OS screens
-        if (bootAudioSource != null && bootAudioClip != null)
-        {
-            bootAudioSource.clip = bootAudioClip;
-            bootAudioSource.Play();
-        }
-
-        // Activate logo panel in background BEFORE boot screen — logos start
-        // drifting immediately and will be well spread out by the time we reveal them
-        logoPanel.SetActive(true);
-        Color starColor = starfield.color;
-        starColor.a = 1f;
-        starfield.color = starColor;
-        gupworksLogo.color = new Color(1f, 1f, 1f, 1f);
-        StartCoroutine(FloatLogo());
-
-        // Start fully black then instantly cut to boot screen — no fade
-        SetFade(1f);
-        bootPanel.SetActive(true);
-        bootText.text = "";
-        SetFade(0f);
-
-        // Play BIOS POST text
-        yield return StartCoroutine(PlayBootSequence());
-
-        // Hard cut to OS panel — no fade, audio keeps playing
-        bootPanel.SetActive(false);
-        osPanel.SetActive(true);
-        osText.text = "";
-        osLoadBar.fillAmount = 0f;
-
-        yield return StartCoroutine(PlayOSSequence());
-
-        yield return new WaitForSeconds(0.5f);
-
-        // Fade to black — logos have been drifting this whole time behind the scenes
-        yield return StartCoroutine(FadeOut());
-        osPanel.SetActive(false);
-
-        // Start fade in and music cue together — music kicks in 0.5s into the fade
-        StartCoroutine(FadeIn(0.5f));
-        yield return new WaitForSeconds(0.5f);
-
-        if (musicSource != null && logoCue != null)
-        {
-            musicSource.clip = logoCue;
-            musicSource.Play();
-        }
-
-        // Wait for fade to finish (fade takes ~2s total, we already waited 0.5s)
-        yield return new WaitForSeconds(1.5f);
-
-        // Wait for the logo screen to finish
-        yield return new WaitForSeconds(logoScreenTime);
-
-        // Stop spawning new logos and fade out
-        keepSpawning = false;
-        yield return StartCoroutine(FadeOut());
-        SceneManager.LoadScene(nextScene);
-    }
-
     IEnumerator PlayBootSequence()
     {
         bootText.color = new Color(1f, 1f, 1f, 1f);
         bootText.text = "";
 
-        // Wait 4 seconds — machine click and whirr plays first
         yield return new WaitForSeconds(4f);
+        if (introSkipped) yield break;
 
-        // Block 1 — BIOS header and CPU/RAM (appears at 4s mark)
         bootText.text =
             "GupWorks Interactive BIOS v1.9.87, An Energy Star Ally\n" +
             "Copyright (C) 1994 GupWorks Interactive. All rights reserved. Probably.\n" +
@@ -284,12 +320,10 @@ public class IntroSequence : MonoBehaviour
             "\n" +
             "PENTIUM-G CPU at 66MHz\n";
 
-        // Animated RAM count — runs from ~4s to ~6s
         yield return StartCoroutine(CountRAM());
-
+        if (introSkipped) yield break;
         yield return new WaitForSeconds(0.3f);
 
-        // Block 2 — PnP and IDE detection
         bootText.text +=
             "\n" +
             "GupWorks Plug and Play BIOS Extension  v1.0A\n" +
@@ -300,12 +334,10 @@ public class IntroSequence : MonoBehaviour
             "  Detecting IDE Secondary Slave  ... None\n";
 
         yield return new WaitForSeconds(0.5f);
-
-        // Wait until 13s mark — transition to OS panel
-        // We're roughly at 7-8s after BIOS + IDE blocks, wait ~5 more seconds
+        if (introSkipped) yield break;
         yield return new WaitForSeconds(5f);
+        if (introSkipped) yield break;
 
-        // Block 3 — two column hardware table (appears at ~13s mark)
         bootText.text +=
             "\n" +
             "+-----------------------+---------------------------+\n" +
@@ -324,8 +356,8 @@ public class IntroSequence : MonoBehaviour
             "  0        17          1994       0002      Multimedia Device  11\n" +
             "\n";
 
-        // DMI dots and final line — finishes right around 17s
         yield return StartCoroutine(DMIVerify());
+        if (introSkipped) yield break;
 
         bootText.text += "Starting GupWorks OS v1.9.87...\n";
         yield return new WaitForSeconds(0.3f);
@@ -333,7 +365,6 @@ public class IntroSequence : MonoBehaviour
         bootText.text += "\n\nPress <b>DEL</b> to enter SETUP\n";
         bootText.text += "12/10/94-GW1994,GUP8669-1A94GW2BC-00";
 
-        // Hold until audio finishes (total ~17s)
         yield return new WaitForSeconds(0.5f);
     }
 
@@ -347,6 +378,7 @@ public class IntroSequence : MonoBehaviour
 
         while (current < target)
         {
+            if (introSkipped) yield break;
             current = Mathf.Min(current + step, target);
             string[] lines = bootText.text.Split('\n');
             lines[lines.Length - 1] = "Memory Test : " + current + "K OK";
@@ -365,6 +397,7 @@ public class IntroSequence : MonoBehaviour
         int dots = 0;
         while (dots < 8)
         {
+            if (introSkipped) yield break;
             string[] lines = bootText.text.Split('\n');
             lines[lines.Length - 1] = base_line + new string('.', dots + 1);
             bootText.text = string.Join("\n", lines);
@@ -376,14 +409,14 @@ public class IntroSequence : MonoBehaviour
 
     IEnumerator PlayOSSequence()
     {
-        // OS panel only has ~4 seconds before logo — keep it snappy
-        osText.color = new Color(0f, 1f, 0.3f, 1f); // green text for OS
+        osText.color = new Color(0f, 1f, 0.3f, 1f);
         osText.text =
             "GupWorks OS v1.9.87\n" +
             "Copyright (C) 1994 GupWorks Interactive\n" +
             "\n";
 
         yield return new WaitForSeconds(0.4f);
+        if (introSkipped) yield break;
 
         osText.text +=
             "Loading CURLY_HENDERSON.EXE...  OK\n" +
@@ -393,15 +426,17 @@ public class IntroSequence : MonoBehaviour
             "Initialising BAYFRONT...        OK\n";
 
         yield return new WaitForSeconds(0.4f);
+        if (introSkipped) yield break;
 
         osText.text += "\nAll systems nominal. Probably.\n";
 
         yield return new WaitForSeconds(0.5f);
+        if (introSkipped) yield break;
 
-        // Animate load bar quickly
         float t = 0f;
         while (t < 1f)
         {
+            if (introSkipped) yield break;
             t += Time.deltaTime * 1.5f;
             osLoadBar.fillAmount = Mathf.Clamp01(t);
             yield return null;
@@ -426,24 +461,19 @@ public class IntroSequence : MonoBehaviour
 
     IEnumerator FloatLogo()
     {
-        // Set up the big centered logo — fully visible, fadeImage covers it
         RectTransform centerRT = gupworksLogo.rectTransform;
         centerRT.anchoredPosition = Vector2.zero;
         centerRT.sizeDelta = new Vector2(centerLogoSize, centerLogoSize);
         gupworksLogo.preserveAspect = true;
         gupworksLogo.color = new Color(1f, 1f, 1f, 1f);
 
-        // Spawn initial batch — half mid-screen already in motion, half coming from top-left
         for (int i = 0; i < logoCount; i++)
         {
             bool midScreen = i < logoCount / 2;
             SpawnFloatingLogo(false, midScreen);
         }
 
-        // Make sure center logo is on top
         gupworksLogo.transform.SetAsLastSibling();
-
-        // Keep spawning new logos continuously
         StartCoroutine(ContinuousSpawn());
         yield return null;
     }
@@ -475,7 +505,6 @@ public class IntroSequence : MonoBehaviour
         }
         else
         {
-            // Fallback — left edge or top edge
             if (Random.value > 0.5f)
             {
                 rt.anchoredPosition = new Vector2(
@@ -504,15 +533,12 @@ public class IntroSequence : MonoBehaviour
         int pointCount = spline.GetPointCount();
         if (pointCount < 2) return Vector2.zero;
 
-        // Pick a random segment
         int i = Random.Range(0, pointCount - 1);
         Vector3 a = spawnPath.transform.TransformPoint(spline.GetPosition(i));
         Vector3 b = spawnPath.transform.TransformPoint(spline.GetPosition(i + 1));
 
-        // Random point along that segment
         Vector3 worldPos = Vector3.Lerp(a, b, Random.value);
 
-        // Convert world position to canvas local position
         RectTransform canvasRT = logoPanel.transform.parent.GetComponent<RectTransform>();
         Vector2 screenPos = Camera.main.WorldToScreenPoint(worldPos);
         RectTransformUtility.ScreenPointToLocalPointInRectangle(canvasRT, screenPos, null, out Vector2 localPos);
@@ -547,7 +573,6 @@ public class IntroSequence : MonoBehaviour
 
     IEnumerator DriftLogo(RectTransform rt, Image img, float speed, bool fadeIn)
     {
-        // Fade in to half alpha if this is a continuously spawned logo
         if (fadeIn)
         {
             float elapsed = 0f;
@@ -560,10 +585,7 @@ public class IntroSequence : MonoBehaviour
             }
         }
 
-        // Ensure alpha is exactly 0.5 after fade (or from spawn)
         img.color = new Color(1f, 1f, 1f, 0.5f);
-
-        // Always drift toward bottom-right
         Vector2 drift = new Vector2(speed, -speed);
 
         while (true)
@@ -573,8 +595,6 @@ public class IntroSequence : MonoBehaviour
             yield return null;
         }
     }
-
-    // ---- Fade helpers ----
 
     void SetFade(float alpha)
     {

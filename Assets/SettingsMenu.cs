@@ -3,6 +3,7 @@ using UnityEngine.UI;
 using UnityEngine.InputSystem;
 using UnityEngine.Audio;
 using TMPro;
+using System.Collections.Generic;
 
 public class SettingsMenu : MonoBehaviour
 {
@@ -20,6 +21,7 @@ public class SettingsMenu : MonoBehaviour
     public Button saveButton;
     public Button loadButton;
     public Button optionsButton;
+    public Button displayButton;
     public Button quitButton;
     public TextMeshProUGUI versionText;
 
@@ -31,6 +33,13 @@ public class SettingsMenu : MonoBehaviour
     public Toggle familyFriendlyToggle;
     public Button optionsBackButton;
 
+    [Header("Display Panel")]
+    public GameObject displayPanel;
+    public TMP_Dropdown resolutionDropdown;
+    public Toggle fullscreenToggle;
+    public Toggle borderlessToggle;
+    public Button displayBackButton;
+
     [Header("Quit Confirmation Panel")]
     public GameObject quitPanel;
     public TextMeshProUGUI quitMessage;
@@ -38,35 +47,36 @@ public class SettingsMenu : MonoBehaviour
     public Button quitNoButton;
 
     [Header("Audio")]
-    public AudioSource uiAudioSource;       // AudioSource routed to SFX mixer group
-    public AudioSource voiceAudioSource;    // AudioSource routed to Voice mixer group
-    public AudioClip bloopClip;             // Plays when SFX slider moves
-    public AudioClip quitVoiceLine;         // Curly's "you should save" voice line
+    public AudioSource uiAudioSource;
+    public AudioSource voiceAudioSource;
+    public AudioClip bloopClip;
+    public AudioClip quitVoiceLine;
 
     private float quitLineCooldown = 0f;
     private const float QuitLineCooldownTime = 5f;
     private float bloopCooldown = 0f;
     private const float BloopCooldownTime = 0.5f;
 
-    // Controller navigation
     private int selectedIndex = 0;
     private float stickCooldown = 0f;
     private const float StickCooldownTime = 0.2f;
 
-    private enum MenuPanel { Main, Options, Quit }
+    private enum MenuPanel { Main, Options, Display, Quit }
     private MenuPanel activePanel = MenuPanel.Main;
 
-    // Game settings — static so any script can read them
     public static float musicVolume = 1f;
     public static float sfxVolume = 1f;
     public static float voiceVolume = 1f;
     public static bool familyFriendly = false;
+
+    private Resolution[] availableResolutions;
 
     void Awake()
     {
         instance = this;
         settingsPanel.SetActive(false);
         optionsPanel.SetActive(false);
+        displayPanel.SetActive(false);
         quitPanel.SetActive(false);
     }
 
@@ -81,22 +91,24 @@ public class SettingsMenu : MonoBehaviour
         voiceVolume = PlayerPrefs.GetFloat("VoiceVolume", 1f);
         familyFriendly = PlayerPrefs.GetInt("FamilyFriendly", 0) == 1;
 
-        // Apply to sliders and toggle
         if (musicSlider != null) musicSlider.value = musicVolume;
         if (sfxSlider != null) sfxSlider.value = sfxVolume;
         if (voiceSlider != null) voiceSlider.value = voiceVolume;
         if (familyFriendlyToggle != null) familyFriendlyToggle.isOn = familyFriendly;
 
-        // Apply saved volumes to mixer
         ApplyVolumes();
+        SetupResolutionDropdown();
+        LoadDisplaySettings();
 
         // Hook up buttons
         resumeButton.onClick.AddListener(CloseSettings);
         saveButton.onClick.AddListener(OnSave);
         loadButton.onClick.AddListener(OnLoad);
         optionsButton.onClick.AddListener(OpenOptions);
+        if (displayButton != null) displayButton.onClick.AddListener(OpenDisplay);
         quitButton.onClick.AddListener(OpenQuitConfirmation);
         optionsBackButton.onClick.AddListener(CloseOptions);
+        if (displayBackButton != null) displayBackButton.onClick.AddListener(CloseDisplay);
         quitYesButton.onClick.AddListener(QuitGame);
         quitNoButton.onClick.AddListener(CloseQuitConfirmation);
 
@@ -105,14 +117,117 @@ public class SettingsMenu : MonoBehaviour
         if (sfxSlider != null) sfxSlider.onValueChanged.AddListener(OnSFXChanged);
         if (voiceSlider != null) voiceSlider.onValueChanged.AddListener(OnVoiceChanged);
         if (familyFriendlyToggle != null) familyFriendlyToggle.onValueChanged.AddListener(OnFamilyFriendlyChanged);
+
+        // Hook up display toggles
+        if (fullscreenToggle != null) fullscreenToggle.onValueChanged.AddListener(OnFullscreenChanged);
+        if (borderlessToggle != null) borderlessToggle.onValueChanged.AddListener(OnBorderlessChanged);
+        if (resolutionDropdown != null) resolutionDropdown.onValueChanged.AddListener(OnResolutionChanged);
+    }
+
+    void SetupResolutionDropdown()
+    {
+        if (resolutionDropdown == null) return;
+
+        availableResolutions = Screen.resolutions;
+        resolutionDropdown.ClearOptions();
+
+        List<string> options = new List<string>();
+        int currentResIndex = 0;
+
+        for (int i = 0; i < availableResolutions.Length; i++)
+        {
+            // Filter out anything below 800x600 — CRT monitor minimum
+            if (availableResolutions[i].width < 800 || availableResolutions[i].height < 600)
+                continue;
+
+            string option = availableResolutions[i].width + " x " + availableResolutions[i].height;
+            if (!options.Contains(option))
+                options.Add(option);
+
+            if (availableResolutions[i].width == Screen.currentResolution.width &&
+                availableResolutions[i].height == Screen.currentResolution.height)
+                currentResIndex = options.Count - 1;
+        }
+
+        resolutionDropdown.AddOptions(options);
+        resolutionDropdown.value = PlayerPrefs.GetInt("ResolutionIndex", currentResIndex);
+        resolutionDropdown.RefreshShownValue();
+    }
+
+    void LoadDisplaySettings()
+    {
+        bool fullscreen = PlayerPrefs.GetInt("Fullscreen", 1) == 1;
+        bool borderless = PlayerPrefs.GetInt("Borderless", 0) == 1;
+
+        if (fullscreenToggle != null) fullscreenToggle.isOn = fullscreen;
+        if (borderlessToggle != null) borderlessToggle.isOn = borderless;
+
+        ApplyDisplayMode(fullscreen, borderless);
+    }
+
+    void ApplyDisplayMode(bool fullscreen, bool borderless)
+    {
+        if (fullscreen)
+            Screen.fullScreenMode = FullScreenMode.ExclusiveFullScreen;
+        else if (borderless)
+            Screen.fullScreenMode = FullScreenMode.FullScreenWindow;
+        else
+            Screen.fullScreenMode = FullScreenMode.Windowed;
+    }
+
+    void OnResolutionChanged(int index)
+    {
+        if (availableResolutions == null || index >= availableResolutions.Length) return;
+
+        // Find matching resolution from unique list
+        string selected = resolutionDropdown.options[index].text;
+        string[] parts = selected.Split('x');
+        if (parts.Length != 2) return;
+
+        int w = int.Parse(parts[0].Trim());
+        int h = int.Parse(parts[1].Trim());
+
+        Screen.SetResolution(w, h, Screen.fullScreenMode);
+        PlayerPrefs.SetInt("ResolutionIndex", index);
+        PlayerPrefs.Save();
+    }
+
+    void OnFullscreenChanged(bool value)
+    {
+        // Fullscreen and borderless are mutually exclusive
+        if (value && borderlessToggle != null && borderlessToggle.isOn)
+        {
+            borderlessToggle.isOn = false;
+            PlayerPrefs.SetInt("Borderless", 0);
+        }
+
+        PlayerPrefs.SetInt("Fullscreen", value ? 1 : 0);
+        PlayerPrefs.Save();
+
+        bool borderless = borderlessToggle != null && borderlessToggle.isOn;
+        ApplyDisplayMode(value, borderless);
+    }
+
+    void OnBorderlessChanged(bool value)
+    {
+        // Borderless and fullscreen are mutually exclusive
+        if (value && fullscreenToggle != null && fullscreenToggle.isOn)
+        {
+            fullscreenToggle.isOn = false;
+            PlayerPrefs.SetInt("Fullscreen", 0);
+        }
+
+        PlayerPrefs.SetInt("Borderless", value ? 1 : 0);
+        PlayerPrefs.Save();
+
+        bool fullscreen = fullscreenToggle != null && fullscreenToggle.isOn;
+        ApplyDisplayMode(fullscreen, value);
     }
 
     void Update()
     {
-        if (quitLineCooldown > 0f)
-            quitLineCooldown -= Time.unscaledDeltaTime;
-        if (bloopCooldown > 0f)
-            bloopCooldown -= Time.unscaledDeltaTime;
+        if (quitLineCooldown > 0f) quitLineCooldown -= Time.unscaledDeltaTime;
+        if (bloopCooldown > 0f) bloopCooldown -= Time.unscaledDeltaTime;
 
         if (Keyboard.current.f5Key.wasPressedThisFrame)
         {
@@ -129,7 +244,6 @@ public class SettingsMenu : MonoBehaviour
             else OpenSettings();
         }
 
-        // Controller navigation inside menu
         if (isOpen && Gamepad.current != null)
             HandleControllerNavigation(Gamepad.current);
     }
@@ -167,21 +281,19 @@ public class SettingsMenu : MonoBehaviour
             RefreshHighlights();
         }
 
-        // Left/right adjusts sliders when in options panel
         if (activePanel == MenuPanel.Options && horizontal != 0f)
         {
             AdjustCurrentSlider(horizontal);
             stickCooldown = StickCooldownTime;
         }
 
-        // A button — confirm/press current item
         if (gamepad.aButton.wasPressedThisFrame)
             ActivateCurrentItem();
 
-        // B button — back
         if (gamepad.bButton.wasPressedThisFrame)
         {
             if (activePanel == MenuPanel.Options) CloseOptions();
+            else if (activePanel == MenuPanel.Display) CloseDisplay();
             else if (activePanel == MenuPanel.Quit) CloseQuitConfirmation();
             else CloseSettings();
         }
@@ -191,9 +303,10 @@ public class SettingsMenu : MonoBehaviour
     {
         switch (activePanel)
         {
-            case MenuPanel.Main: return 5; // Resume, Save, Load, Options, Quit
-            case MenuPanel.Options: return 4; // Music, SFX, Voice, Uncensored, Back
-            case MenuPanel.Quit: return 2; // Yes, No
+            case MenuPanel.Main: return 6; // Resume, Save, Load, Options, Display, Quit
+            case MenuPanel.Options: return 4;
+            case MenuPanel.Display: return 3; // Resolution, Fullscreen, Borderless, Back
+            case MenuPanel.Quit: return 2;
         }
         return 0;
     }
@@ -209,21 +322,38 @@ public class SettingsMenu : MonoBehaviour
                     case 1: OnSave(); break;
                     case 2: OnLoad(); break;
                     case 3: OpenOptions(); break;
-                    case 4: OpenQuitConfirmation(); break;
+                    case 4: OpenDisplay(); break;
+                    case 5: OpenQuitConfirmation(); break;
                 }
                 break;
 
             case MenuPanel.Options:
                 switch (selectedIndex)
                 {
-                    case 0: AdjustCurrentSlider(0.1f); break; // Music — nudge right
-                    case 1: AdjustCurrentSlider(0.1f); break; // SFX
-                    case 2: AdjustCurrentSlider(0.1f); break; // Voice
-                    case 3: // Toggle
+                    case 0: AdjustCurrentSlider(0.1f); break;
+                    case 1: AdjustCurrentSlider(0.1f); break;
+                    case 2: AdjustCurrentSlider(0.1f); break;
+                    case 3:
                         if (familyFriendlyToggle != null)
                             familyFriendlyToggle.isOn = !familyFriendlyToggle.isOn;
                         break;
                     case 4: CloseOptions(); break;
+                }
+                break;
+
+            case MenuPanel.Display:
+                switch (selectedIndex)
+                {
+                    case 0: break; // Resolution dropdown — handled by UI
+                    case 1:
+                        if (fullscreenToggle != null)
+                            fullscreenToggle.isOn = !fullscreenToggle.isOn;
+                        break;
+                    case 2:
+                        if (borderlessToggle != null)
+                            borderlessToggle.isOn = !borderlessToggle.isOn;
+                        break;
+                    case 3: CloseDisplay(); break;
                 }
                 break;
 
@@ -251,21 +381,23 @@ public class SettingsMenu : MonoBehaviour
 
     void RefreshHighlights()
     {
-        // Main panel buttons
         SetButtonHighlight(resumeButton, activePanel == MenuPanel.Main && selectedIndex == 0);
         SetButtonHighlight(saveButton, activePanel == MenuPanel.Main && selectedIndex == 1);
         SetButtonHighlight(loadButton, activePanel == MenuPanel.Main && selectedIndex == 2);
         SetButtonHighlight(optionsButton, activePanel == MenuPanel.Main && selectedIndex == 3);
-        SetButtonHighlight(quitButton, activePanel == MenuPanel.Main && selectedIndex == 4);
+        SetButtonHighlight(displayButton, activePanel == MenuPanel.Main && selectedIndex == 4);
+        SetButtonHighlight(quitButton, activePanel == MenuPanel.Main && selectedIndex == 5);
 
-        // Options panel
         SetSliderHighlight(musicSlider, activePanel == MenuPanel.Options && selectedIndex == 0);
         SetSliderHighlight(sfxSlider, activePanel == MenuPanel.Options && selectedIndex == 1);
         SetSliderHighlight(voiceSlider, activePanel == MenuPanel.Options && selectedIndex == 2);
         SetToggleHighlight(familyFriendlyToggle, activePanel == MenuPanel.Options && selectedIndex == 3);
         SetButtonHighlight(optionsBackButton, activePanel == MenuPanel.Options && selectedIndex == 4);
 
-        // Quit panel
+        SetToggleHighlight(fullscreenToggle, activePanel == MenuPanel.Display && selectedIndex == 1);
+        SetToggleHighlight(borderlessToggle, activePanel == MenuPanel.Display && selectedIndex == 2);
+        SetButtonHighlight(displayBackButton, activePanel == MenuPanel.Display && selectedIndex == 3);
+
         SetButtonHighlight(quitYesButton, activePanel == MenuPanel.Quit && selectedIndex == 0);
         SetButtonHighlight(quitNoButton, activePanel == MenuPanel.Quit && selectedIndex == 1);
     }
@@ -312,6 +444,7 @@ public class SettingsMenu : MonoBehaviour
         isOpen = true;
         settingsPanel.SetActive(true);
         optionsPanel.SetActive(false);
+        displayPanel.SetActive(false);
         quitPanel.SetActive(false);
         DialogueManager.isInDialogue = true;
         activePanel = MenuPanel.Main;
@@ -324,6 +457,7 @@ public class SettingsMenu : MonoBehaviour
         isOpen = false;
         settingsPanel.SetActive(false);
         optionsPanel.SetActive(false);
+        displayPanel.SetActive(false);
         quitPanel.SetActive(false);
         DialogueManager.isInDialogue = false;
     }
@@ -354,7 +488,25 @@ public class SettingsMenu : MonoBehaviour
         optionsPanel.SetActive(false);
         settingsPanel.SetActive(true);
         activePanel = MenuPanel.Main;
-        selectedIndex = 3; // Land back on Options button
+        selectedIndex = 3;
+        RefreshHighlights();
+    }
+
+    void OpenDisplay()
+    {
+        settingsPanel.SetActive(false);
+        displayPanel.SetActive(true);
+        activePanel = MenuPanel.Display;
+        selectedIndex = 0;
+        RefreshHighlights();
+    }
+
+    void CloseDisplay()
+    {
+        displayPanel.SetActive(false);
+        settingsPanel.SetActive(true);
+        activePanel = MenuPanel.Main;
+        selectedIndex = 4;
         RefreshHighlights();
     }
 
@@ -372,7 +524,7 @@ public class SettingsMenu : MonoBehaviour
         }
 
         activePanel = MenuPanel.Quit;
-        selectedIndex = 1; // Default to No for safety
+        selectedIndex = 1;
         RefreshHighlights();
     }
 
@@ -381,7 +533,7 @@ public class SettingsMenu : MonoBehaviour
         quitPanel.SetActive(false);
         settingsPanel.SetActive(true);
         activePanel = MenuPanel.Main;
-        selectedIndex = 4; // Land back on Quit button
+        selectedIndex = 5;
         RefreshHighlights();
     }
 
@@ -418,7 +570,6 @@ public class SettingsMenu : MonoBehaviour
         PlayerPrefs.SetFloat("SFXVolume", value);
         PlayerPrefs.Save();
 
-        // Play bloop so the player can hear the new volume level immediately
         if (bloopClip != null && uiAudioSource != null && bloopCooldown <= 0f)
         {
             uiAudioSource.PlayOneShot(bloopClip);
