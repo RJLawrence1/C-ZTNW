@@ -16,6 +16,7 @@ GameObject:
   - component: {fileID: 3527727656425185348}
   - component: {fileID: 9175241602600070667}
   - component: {fileID: 106174901311772366}
+  - component: {fileID: 2606577620579583236}
   m_Layer: 0
   m_Name: GameManager
   m_TagString: Untagged
@@ -190,3 +191,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6254bf90240d89b408e3c336cdb69beb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::RumbleManager
+--- !u!114 &2606577620579583236
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4854169028328746335}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 008ef230e0a4feb4fafda866f9e11200, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ControlsOverlay
+  controlsPanel: {fileID: 0}
+  controlsText: {fileID: 0}
+  helpButton: {fileID: 0}

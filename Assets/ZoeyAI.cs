@@ -68,6 +68,19 @@ public class ZoeyAI : MonoBehaviour
         HandleMovement();
         HandleScaling();
 
+        // If Zoey is off camera, hustle back to Curly immediately
+        if (!isPaused && !isReturningToCurly && !isHustling)
+        {
+            Vector3 screenPos = Camera.main.WorldToViewportPoint(transform.position);
+            bool offScreen = screenPos.x < 0f || screenPos.x > 1f || screenPos.y < 0f || screenPos.y > 1f;
+            if (offScreen)
+            {
+                isReturningToCurly = true;
+                returnRecalcTimer = 0f;
+                HustleTo(zoeyReturnPoint != null ? zoeyReturnPoint.position : curly.position);
+            }
+        }
+
         if (isWaiting && pendingInteractable == null)
         {
             waitTimer -= Time.deltaTime;
@@ -325,11 +338,22 @@ public class ZoeyAI : MonoBehaviour
     {
         Bounds bounds = walkableArea.bounds;
 
+        // Get camera visible bounds in world space
+        Camera cam = Camera.main;
+        float camHeight = cam.orthographicSize;
+        float camWidth = camHeight * cam.aspect;
+        Vector3 camPos = cam.transform.position;
+
+        float minX = Mathf.Max(bounds.min.x, camPos.x - camWidth);
+        float maxX = Mathf.Min(bounds.max.x, camPos.x + camWidth);
+        float minY = Mathf.Max(bounds.min.y, camPos.y - camHeight);
+        float maxY = Mathf.Min(bounds.max.y, camPos.y + camHeight);
+
         for (int i = 0; i < 20; i++)
         {
             Vector3 candidate = new Vector3(
-                Random.Range(bounds.min.x, bounds.max.x),
-                Random.Range(bounds.min.y, bounds.max.y),
+                Random.Range(minX, maxX),
+                Random.Range(minY, maxY),
                 0f
             );
 

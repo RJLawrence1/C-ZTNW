@@ -163,6 +163,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
+--- !u!1 &247755146 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 5577227830233778392, guid: 3c19665631d18154197ecfe4fa7e80d6, type: 3}
+  m_PrefabInstance: {fileID: 3174257082097818583}
+  m_PrefabAsset: {fileID: 0}
 --- !u!114 &260387190 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 735808046257384552, guid: 3c19665631d18154197ecfe4fa7e80d6, type: 3}
@@ -836,6 +841,17 @@ MonoBehaviour:
 --- !u!114 &1189601366 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 4890895641146659279, guid: 3c19665631d18154197ecfe4fa7e80d6, type: 3}
+  m_PrefabInstance: {fileID: 3174257082097818583}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.TextMeshPro::TMPro.TextMeshProUGUI
+--- !u!114 &1255404048 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 5973088951175642940, guid: 3c19665631d18154197ecfe4fa7e80d6, type: 3}
   m_PrefabInstance: {fileID: 3174257082097818583}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 0}
@@ -2701,10 +2717,6 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 5914178290203858110, guid: a29f9cbc9b109c74480f0eab59dab0c7, type: 3}
-      propertyPath: data.dataString
-      value: UEsDBBQAAAgIAACYn+vdB9i6VwIAABYFAAALACQAZ3JhcGgwLmpzb24KACAAAAAAAAEAGAAAgD7V3rGdAQCAPtXesZ0BAIA+1d6xnQF1VE1z2jAQ/SuMzqVjMElDb60hpAcCE9LJxRfFWmMNsuTRB18Z/ntXso0dOjkh3r5dvbe78gfh0lSQWaUXmrOlYkB+Dog/k2+DLvgER7pVcsPP0HLeOLOFJ9HAeaGWK8RHPs2oEqzm2S+5FZ4cIegkz5Uu52wLiTLWIJxTYQBDWlmfLRH6GJAj/gynPuWEp/EPfzrjaRoNLnjMQFrQHbUltrSa5WQmaFkB85I78ihq6Xc1T6KbhhJ9v/PllRDcNGKIPVXBbEIr49AKEhinaC4o8F4L4NvCeqH95FWeG7CNKk1PM66xR3VV8lvVjSup2dXS9lQ4f0/8MAmq6qLL/+LDUQjnWpVP7b21JVvwbPdCTxk1ttfZPjz7LNzJAxU7+i7grQD5rBZaOckwaLXzqc7AeNb9vVpLCsh2HV5LvQFd9fV8vIdLcH9MBC/fQ+cnNbARKvQ7TB80zuYPCg67YZoSiHoVfw280m1/iZrAI9fGYqhxKb28d+W0p5J56Jl342yitATdr1CBpMKe1ljH3s7wJvZ11iP176W5vYm1z+AmJcAdP4puQmt1uE7LFOqwBFOsnBVcQtdqH3jGRiVKynrF+pbatI3TOc16aVvH2efdItM8vo/z7H4CLJuOJtEwojFlLI/jh5hNp+OIhOXjEn1Ssa6FNu3BscmuuMRFaz8jg4WmVVh3pulhwc+lMh2Ty1xtMg0gV3WFq3DQeAk+TDZnHBu0AWu5DAMnHykRKtsBS6+F0uB0frSapl2VlFR8r6xHUpKE70ZKPHxd5rWGPYeDv7wtdiGXf1BLAwQUAAAICAAAmJ/rt1OYv20AAAB4AAAACQAkAG1ldGEuanNvbgoAIAAAAAAAAQAYAACAPtXesZ0BAIA+1d6xnQEAgD7V3rGdAatWKkstKs7Mz1OyUjDRM9IzNNdRUEovSizIKAaKGII4pZkpIHa0kmWasZlxWrKZSWpKsqWhiYGuQaJxYkpKmrGxhXGKpaWRgVIsUH1JZUGqX2JuKkRPQGJJRlpmXkpmXrqee1FmijvIaKXYWgBQSwECLQAUAAAICAAAmJ/r3QfYulcCAAAWBQAACwAkAAAAAAAAAAAAAAAAAAAAZ3JhcGgwLmpzb24KACAAAAAAAAEAGAAAgD7V3rGdAQCAPtXesZ0BAIA+1d6xnQFQSwECLQAUAAAICAAAmJ/rt1OYv20AAAB4AAAACQAkAAAAAAAAAAAAAACkAgAAbWV0YS5qc29uCgAgAAAAAAABABgAAIA+1d6xnQEAgD7V3rGdAQCAPtXesZ0BUEsFBgAAAAACAAIAuAAAAFwDAAAAAA==
-      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -3089,6 +3101,14 @@ PrefabInstance:
       propertyPath: interactHighlight
       value: 
       objectReference: {fileID: 1487644893}
+    - target: {fileID: 2606577620579583236, guid: 4e8210c4d7523404fa984b39c514a1da, type: 3}
+      propertyPath: controlsText
+      value: 
+      objectReference: {fileID: 1255404048}
+    - target: {fileID: 2606577620579583236, guid: 4e8210c4d7523404fa984b39c514a1da, type: 3}
+      propertyPath: controlsPanel
+      value: 
+      objectReference: {fileID: 247755146}
     - target: {fileID: 3548674297051426474, guid: 4e8210c4d7523404fa984b39c514a1da, type: 3}
       propertyPath: m_LocalPosition.x
       value: -0.56229
