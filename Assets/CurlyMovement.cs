@@ -158,6 +158,12 @@ public class CurlyMovement : MonoBehaviour
         }
         else
         {
+            if (Mouse.current.rightButton.wasPressedThisFrame && !IsPointerOverUI())
+            {
+                if (VerbManager.instance != null && VerbManager.instance.currentVerb != VerbManager.Verb.None)
+                    VerbManager.instance.SetVerb(VerbManager.Verb.None);
+            }
+
             if (Mouse.current.leftButton.wasPressedThisFrame && !IsPointerOverUI())
             {
                 Vector2 mousePos2D = Mouse.current.position.ReadValue();

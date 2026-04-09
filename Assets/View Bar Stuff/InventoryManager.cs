@@ -31,6 +31,9 @@ public class InventoryManager : MonoBehaviour
     public AudioClip combineSuccessClip;
     public AudioClip combineFailClip;
 
+    [Header("Examination")]
+    public ItemExaminationDatabase examinationDatabase;
+
     void Awake()
     {
         instance = this;
@@ -77,7 +80,7 @@ public class InventoryManager : MonoBehaviour
             trigger.triggers.Add(endDrag);
 
             var click = new EventTrigger.Entry { eventID = EventTriggerType.PointerClick };
-            click.callback.AddListener((_) => OnSlotClicked(index));
+            click.callback.AddListener((data) => OnSlotClicked(index, (PointerEventData)data));
             trigger.triggers.Add(click);
         }
     }
@@ -182,10 +185,17 @@ public class InventoryManager : MonoBehaviour
 
     // ── Click to Combine ─────────────────────────────────────────
 
-    void OnSlotClicked(int index)
+    void OnSlotClicked(int index, PointerEventData data = null)
     {
         if (draggingIndex >= 0) return;
         if (index >= itemNames.Count || itemNames[index] == null || itemNames[index] == "") return;
+
+        // Right click — examine item
+        if (data != null && data.button == PointerEventData.InputButton.Right)
+        {
+            ExamineItem(index);
+            return;
+        }
 
         if (selectedForCombine < 0)
         {
@@ -203,6 +213,24 @@ public class InventoryManager : MonoBehaviour
             selectedForCombine = -1;
             RefreshSlotHighlights();
         }
+    }
+
+    void ExamineItem(int index)
+    {
+        string name = itemNames[index];
+
+        if (examinationDatabase != null)
+        {
+            var entry = examinationDatabase.GetExamination(name);
+            if (entry != null)
+            {
+                DialogueLabel.curlyLabel.Say(entry.description, entry.clip);
+                return;
+            }
+        }
+
+        // Fallback if no entry found
+        DialogueLabel.curlyLabel.Say("It's a " + name + ".");
     }
 
     void RefreshSlotHighlights()

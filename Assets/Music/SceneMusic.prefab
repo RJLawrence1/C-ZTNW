@@ -44,5 +44,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a42bb5863d3f1ca45836ee98d0ddeeb2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SceneMusic
-  musicClip: {fileID: 0}
-  trackTag: 
+  musicClip: {fileID: 8300000, guid: 69cb7f0e7dd801b4895215555f11f1a7, type: 3}
+  trackTag: 1987
+  ambienceClip: {fileID: 0}
+  ambienceVolume: 0.5
+  sfxMixerGroup: {fileID: 4324609264402440005, guid: edb819f49e28ee248a7099da7df8cf2a, type: 2}

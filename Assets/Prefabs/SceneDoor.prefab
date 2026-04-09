@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 4017147517414905547}
   - component: {fileID: 507136057253119885}
   - component: {fileID: 7500755154808383252}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: SceneDoor
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -45,7 +45,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0e56e680c6d4eae4680b10fe5d557b41, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SceneDoor
-  targetScene: TestRoom1
+  targetScene: TestRoom2
   spawnDoorTag: DoorA
 --- !u!61 &7500755154808383252
 BoxCollider2D:

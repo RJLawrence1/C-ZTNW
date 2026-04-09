@@ -91,6 +91,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c61984fa96009544288220c2f308c607, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CutsceneTrigger
-  triggerType: 0
-  cutscene: {fileID: 0}
+  triggerType: 1
+  cutscene: {fileID: 11400000, guid: 9efc8bffd598cd148b3267d76a238104, type: 2}
   oneShot: 1
