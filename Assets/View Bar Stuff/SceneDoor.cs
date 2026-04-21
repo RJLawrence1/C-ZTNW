@@ -19,6 +19,7 @@ public class SceneDoor : MonoBehaviour
             isOnCooldown = true;
             movementLocked = true;
             curly.CancelMovement();
+            if (RumbleManager.instance != null) RumbleManager.instance.Rumble(0.3f, 0.2f, 0.2f);
             SaveManager.QueueAutoSave();
             SceneTransition.instance.GoToScene(targetScene, spawnDoorTag);
         }

@@ -267,10 +267,12 @@ public class InventoryManager : MonoBehaviour
             itemNames.RemoveAt(first); itemSprites.RemoveAt(first); itemColors.RemoveAt(first);
 
             AddItem(combo.resultName, combo.resultSprite, combo.resultColor);
+            if (RumbleManager.instance != null) RumbleManager.instance.Rumble(0.3f, 0.3f, 0.2f);
             DialogueLabel.curlyLabel.Say("Yeah. That works.", combineSuccessClip);
         }
         else
         {
+            if (RumbleManager.instance != null) RumbleManager.instance.Rumble(0.1f, 0.05f, 0.1f);
             DialogueLabel.curlyLabel.Say("Those don't go together.", combineFailClip);
         }
     }

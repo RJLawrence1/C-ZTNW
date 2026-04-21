@@ -484,10 +484,12 @@ public class PhoneBoothUI : MonoBehaviour
         {
             audioSource.loop = false;
             audioSource.PlayOneShot(teleportClip);
+            if (RumbleManager.instance != null) RumbleManager.instance.Rumble(0.8f, 0.5f, teleportClip.length);
             yield return new WaitForSeconds(teleportClip.length);
         }
         else
         {
+            if (RumbleManager.instance != null) RumbleManager.instance.Rumble(0.8f, 0.5f, 0.5f);
             yield return new WaitForSeconds(0.5f);
         }
 

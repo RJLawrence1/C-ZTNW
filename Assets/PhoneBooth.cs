@@ -239,6 +239,7 @@ public class PhoneBooth : MonoBehaviour, IInteractable
         if (zoey != null) zoey.isPaused = true;
 
         // Open the phone UI
+        if (RumbleManager.instance != null) RumbleManager.instance.Rumble(0.2f, 0.15f, 0.2f);
         PhoneBoothUI.instance.Show(this);
     }
 

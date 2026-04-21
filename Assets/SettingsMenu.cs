@@ -446,6 +446,10 @@ public class SettingsMenu : MonoBehaviour
 
     public void OpenSettings()
     {
+        // Don't open during cutscenes or dialogue
+        if (CutsceneManager.isPlaying) return;
+        if (DialogueManager.isInDialogue) return;
+
         isOpen = true;
         settingsPanel.SetActive(true);
         optionsPanel.SetActive(false);
