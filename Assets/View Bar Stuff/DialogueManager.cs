@@ -25,6 +25,12 @@ public class DialogueManager : MonoBehaviour
     private Action[] optionActions = new Action[5];
     private int optionCount = 0;
 
+    // Controller navigation
+    private int highlightedIndex = 0;
+    private float navCooldown = 0f;
+    private const float NavCooldownTime = 0.2f;
+
+    private Button[] buttons;
     private CurlyMovement curly;
 
     void Awake()
@@ -36,27 +42,60 @@ public class DialogueManager : MonoBehaviour
     void Start()
     {
         curly = FindObjectOfType<CurlyMovement>();
+        buttons = new Button[] { option1Button, option2Button, option3Button, option4Button, option5Button };
     }
 
     void Update()
     {
         if (!dialoguePanel.activeSelf) return;
 
-        // Keyboard
+        if (navCooldown > 0f) navCooldown -= Time.unscaledDeltaTime;
+
+        // Keyboard number shortcuts
         if (Keyboard.current.digit1Key.wasPressedThisFrame && optionCount >= 1) SelectOption(0);
         if (Keyboard.current.digit2Key.wasPressedThisFrame && optionCount >= 2) SelectOption(1);
         if (Keyboard.current.digit3Key.wasPressedThisFrame && optionCount >= 3) SelectOption(2);
         if (Keyboard.current.digit4Key.wasPressedThisFrame && optionCount >= 4) SelectOption(3);
         if (Keyboard.current.digit5Key.wasPressedThisFrame && optionCount >= 5) SelectOption(4);
 
-        // Controller face buttons — 5th option on D-pad down
+        // Controller — D-pad up/down to navigate, A to confirm
         if (Gamepad.current != null)
         {
-            if (Gamepad.current.buttonSouth.wasPressedThisFrame && optionCount >= 1) SelectOption(0);
-            if (Gamepad.current.buttonEast.wasPressedThisFrame && optionCount >= 2) SelectOption(1);
-            if (Gamepad.current.buttonWest.wasPressedThisFrame && optionCount >= 3) SelectOption(2);
-            if (Gamepad.current.buttonNorth.wasPressedThisFrame && optionCount >= 4) SelectOption(3);
-            if (Gamepad.current.dpad.down.wasPressedThisFrame && optionCount >= 5) SelectOption(4);
+            if (navCooldown <= 0f)
+            {
+                bool up = Gamepad.current.dpad.up.isPressed || Gamepad.current.leftStick.y.ReadValue() > 0.5f;
+                bool down = Gamepad.current.dpad.down.isPressed || Gamepad.current.leftStick.y.ReadValue() < -0.5f;
+
+                if (up)
+                {
+                    highlightedIndex = (highlightedIndex - 1 + optionCount) % optionCount;
+                    navCooldown = NavCooldownTime;
+                    RefreshHighlight();
+                }
+                else if (down)
+                {
+                    highlightedIndex = (highlightedIndex + 1) % optionCount;
+                    navCooldown = NavCooldownTime;
+                    RefreshHighlight();
+                }
+            }
+
+            if (Gamepad.current.buttonSouth.wasPressedThisFrame && optionCount > 0)
+                SelectOption(highlightedIndex);
+        }
+    }
+
+    void RefreshHighlight()
+    {
+        for (int i = 0; i < buttons.Length; i++)
+        {
+            if (buttons[i] == null) continue;
+            TextMeshProUGUI tmp = buttons[i].GetComponentInChildren<TextMeshProUGUI>();
+            if (tmp == null) continue;
+            // Highlight selected option — bright white, others normal green
+            tmp.color = (i == highlightedIndex && i < optionCount)
+                ? Color.white
+                : new Color(0f, 0.67f, 0f, 1f);
         }
     }
 
@@ -65,6 +104,7 @@ public class DialogueManager : MonoBehaviour
         isInDialogue = true;
         optionCount = options.Length;
         optionActions = actions;
+        highlightedIndex = 0;
 
         if (curly != null)
             curly.CancelMovement();
@@ -76,6 +116,7 @@ public class DialogueManager : MonoBehaviour
         SetupButton(option5Button, option5Text, optionCount >= 5 ? options[4] : "", 4, optionCount >= 5);
 
         dialoguePanel.SetActive(true);
+        RefreshHighlight();
     }
 
     void SetupButton(Button button, TextMeshProUGUI text, string label, int index, bool active)

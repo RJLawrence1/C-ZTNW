@@ -127,6 +127,9 @@ public class CurlyMovement : MonoBehaviour
 
         if (Gamepad.current != null && Gamepad.current.leftStick != null && Gamepad.current.leftStick.ReadValue().magnitude > 0.2f)
         {
+            // Cancel any pending pathfinding so stick takes full control
+            if (isMoving) CancelMovement();
+
             Vector2 stick = Gamepad.current.leftStick.ReadValue();
             Vector3 delta = new Vector3(stick.x, stick.y, 0f) * currentSpeed * Time.deltaTime;
             Vector3 newPos = transform.position + delta;

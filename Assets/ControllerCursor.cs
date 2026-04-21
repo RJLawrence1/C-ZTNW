@@ -105,6 +105,14 @@ public class ControllerCursor : MonoBehaviour
             return;
         }
 
+        // B button cancels current verb when not in inventory and no item selected
+        if (gamepad.bButton.wasPressedThisFrame && !ItemCursor.hasSelectedItem && !InventoryManager.instance.isOpen)
+        {
+            if (VerbManager.instance != null && VerbManager.instance.currentVerb != VerbManager.Verb.None)
+                VerbManager.instance.SetVerb(VerbManager.Verb.None);
+            return;
+        }
+
         float x = gamepad.rightStick.x.ReadValue();
         float y = gamepad.rightStick.y.ReadValue();
         Vector2 rightStickMove = new Vector2(x, y);
@@ -139,6 +147,13 @@ public class ControllerCursor : MonoBehaviour
             return;
         }
 
+        // If save slot panel is open, hand off to save slot controller
+        if (SaveManager.instance != null && SaveManager.instance.saveSlotPanel != null && SaveManager.instance.saveSlotPanel.activeSelf)
+        {
+            HandleSaveSlotController(gamepad);
+            return;
+        }
+
         // Hotspot detection
         if (cursorImage.enabled && !PhoneBoothUI.isInPhoneBooth && !IsDialoguePlaying())
         {
@@ -166,6 +181,48 @@ public class ControllerCursor : MonoBehaviour
             if (IsDialoguePlaying()) return;
             SimulateClick(GetScreenPosition());
         }
+    }
+
+    // ── Save Slot Controller ─────────────────────────────────────
+
+    private int saveSlotIndex = 0;
+    private float saveSlotNavCooldown = 0f;
+    private const float SaveSlotNavCooldownTime = 0.2f;
+
+    void HandleSaveSlotController(Gamepad gamepad)
+    {
+        if (saveSlotNavCooldown > 0f) saveSlotNavCooldown -= Time.deltaTime;
+
+        // D-pad up/down navigates slots 0-3 (0 = auto, 1-3 = manual)
+        if (saveSlotNavCooldown <= 0f)
+        {
+            if (gamepad.dpad.up.isPressed || gamepad.leftStick.y.ReadValue() > 0.5f)
+            {
+                saveSlotIndex = Mathf.Max(0, saveSlotIndex - 1);
+                saveSlotNavCooldown = SaveSlotNavCooldownTime;
+                HighlightSaveSlot(saveSlotIndex);
+            }
+            else if (gamepad.dpad.down.isPressed || gamepad.leftStick.y.ReadValue() < -0.5f)
+            {
+                saveSlotIndex = Mathf.Min(3, saveSlotIndex + 1);
+                saveSlotNavCooldown = SaveSlotNavCooldownTime;
+                HighlightSaveSlot(saveSlotIndex);
+            }
+        }
+
+        // A confirms selection
+        if (gamepad.buttonSouth.wasPressedThisFrame)
+            SaveManager.instance.OnSlotClickedController(saveSlotIndex);
+
+        // B closes / goes back
+        if (gamepad.bButton.wasPressedThisFrame)
+            SaveManager.instance.CloseSlotPanel();
+    }
+
+    void HighlightSaveSlot(int index)
+    {
+        // Visual feedback — handled by SaveManager
+        SaveManager.instance.HighlightSlotController(index);
     }
 
     // ── Inventory Controller ─────────────────────────────────────
@@ -275,6 +332,10 @@ public class ControllerCursor : MonoBehaviour
                 inv.inventoryHighlight.color = Color.clear;
             }
         }
+
+        // Y button — examine highlighted item
+        if (gamepad.buttonNorth.wasPressedThisFrame && controllerDragIndex < 0)
+            inv.ExamineItemController(selectedSlotIndex);
 
         // B button — cancel combine grab OR close inventory
         if (gamepad.bButton.wasPressedThisFrame)

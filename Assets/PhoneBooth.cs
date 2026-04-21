@@ -92,13 +92,18 @@ public class PhoneBooth : MonoBehaviour, IInteractable
 
         int iLayer = LayerMask.GetMask("PhoneBooth");
 
-        Vector2 hoverPos = Mouse.current.position.ReadValue();
+        // Hover — use controller cursor position if using controller, otherwise mouse
+        Vector2 hoverPos = ControllerCursor.usingController && ControllerCursor.instance != null
+            ? ControllerCursor.instance.GetScreenPositionPublic()
+            : Mouse.current.position.ReadValue();
+
         RaycastHit2D hoverHit = Physics2D.Raycast(Camera.main.ScreenToWorldPoint(hoverPos), Vector2.zero, Mathf.Infinity, iLayer);
 
         if (hoverHit.collider != null && hoverHit.collider.gameObject == gameObject)
             HotspotLabel.instance.Show("Phone Booth", transform.position);
 
-        if (Mouse.current.leftButton.wasPressedThisFrame)
+        // Click — mouse left click OR controller right trigger via SimulateClick in ControllerCursor
+        if (Mouse.current.leftButton.wasPressedThisFrame && !ControllerCursor.usingController)
         {
             Vector2 mousePos = Mouse.current.position.ReadValue();
             RaycastHit2D hit = Physics2D.Raycast(Camera.main.ScreenToWorldPoint(mousePos), Vector2.zero, Mathf.Infinity, iLayer);

@@ -68,11 +68,15 @@ public class ZoeyInteractable : MonoBehaviour, IInteractable
 
         int iLayer = LayerMask.GetMask("Interactable");
 
-        Vector2 hoverPos = Mouse.current.position.ReadValue();
-        RaycastHit2D hoverHit = Physics2D.Raycast(Camera.main.ScreenToWorldPoint(hoverPos), Vector2.zero, Mathf.Infinity, iLayer);
+        // Only do mouse hover when not using controller — controller handles its own hotspot labels
+        if (!ControllerCursor.usingController)
+        {
+            Vector2 hoverPos = Mouse.current.position.ReadValue();
+            RaycastHit2D hoverHit = Physics2D.Raycast(Camera.main.ScreenToWorldPoint(hoverPos), Vector2.zero, Mathf.Infinity, iLayer);
 
-        if (hoverHit.collider != null && hoverHit.collider.gameObject == gameObject)
-            HotspotLabel.instance.Show("Zoey", transform.position);
+            if (hoverHit.collider != null && hoverHit.collider.gameObject == gameObject)
+                HotspotLabel.instance.Show("Zoey", transform.position);
+        }
 
         if (Mouse.current.leftButton.wasPressedThisFrame)
         {

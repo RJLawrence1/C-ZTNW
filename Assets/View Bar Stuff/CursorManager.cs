@@ -42,9 +42,20 @@ public class CursorManager : MonoBehaviour
         ApplyCursor(VerbManager.Verb.None);
     }
 
+    private bool lastUsingController = false;
+
     void Update()
     {
         if (VerbManager.instance == null) return;
+
+        // If input mode switched, reset cursor immediately
+        if (ControllerCursor.usingController != lastUsingController)
+        {
+            lastUsingController = ControllerCursor.usingController;
+            isHovering = false;
+            lastVerb = VerbManager.instance.currentVerb;
+            ApplyCursor(lastVerb);
+        }
 
         // Only update when verb changes AND not hovering — hover handles its own cursor
         if (!isHovering && VerbManager.instance.currentVerb != lastVerb)

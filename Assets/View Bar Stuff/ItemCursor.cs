@@ -42,7 +42,7 @@ public class ItemCursor : MonoBehaviour
         cursorImage.sprite = sprite;
         cursorImage.color = color;
         cursorImage.enabled = true;
-        // Only hide hardware cursor if using mouse — controller already hides it
+        // Only hide hardware cursor if using mouse — controller manages its own visibility
         if (!ControllerCursor.usingController)
             Cursor.visible = false;
     }
@@ -51,6 +51,7 @@ public class ItemCursor : MonoBehaviour
     {
         selectedItemName = "";
         cursorImage.enabled = false;
+        // Only restore cursor visibility if using mouse
         if (!ControllerCursor.usingController)
             Cursor.visible = true;
     }

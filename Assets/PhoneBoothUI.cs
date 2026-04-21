@@ -194,6 +194,30 @@ public class PhoneBoothUI : MonoBehaviour
         if (Keyboard.current.enterKey.wasPressedThisFrame) DialCall();
         if (Keyboard.current.backspaceKey.wasPressedThisFrame) ClearNumber();
         if (Keyboard.current.escapeKey.wasPressedThisFrame) HangUp();
+
+        // Controller support inside phone booth
+        if (Gamepad.current != null)
+        {
+            // Right trigger = Call (same as Enter)
+            if (Gamepad.current.rightTrigger.wasPressedThisFrame) DialCall();
+            // Left trigger = Clear (same as Backspace)
+            if (Gamepad.current.leftTrigger.wasPressedThisFrame) ClearNumber();
+            // B = Hang Up (same as Escape)
+            if (Gamepad.current.bButton.wasPressedThisFrame) HangUp();
+
+            // Face buttons dial digits — A=1, B skipped (hang up), X=2, Y=3
+            // D-pad dials more digits
+            if (Gamepad.current.buttonSouth.wasPressedThisFrame) DialDigit("1");
+            if (Gamepad.current.buttonWest.wasPressedThisFrame) DialDigit("2");
+            if (Gamepad.current.buttonNorth.wasPressedThisFrame) DialDigit("3");
+            if (Gamepad.current.dpad.up.wasPressedThisFrame) DialDigit("4");
+            if (Gamepad.current.dpad.right.wasPressedThisFrame) DialDigit("5");
+            if (Gamepad.current.dpad.down.wasPressedThisFrame) DialDigit("6");
+            if (Gamepad.current.dpad.left.wasPressedThisFrame) DialDigit("7");
+            if (Gamepad.current.leftShoulder.wasPressedThisFrame) DialDigit("8");
+            if (Gamepad.current.rightShoulder.wasPressedThisFrame) DialDigit("9");
+            if (Gamepad.current.leftStickButton.wasPressedThisFrame) DialDigit("0");
+        }
     }
 
     void SetupButtons()

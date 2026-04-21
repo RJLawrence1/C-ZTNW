@@ -233,6 +233,13 @@ public class InventoryManager : MonoBehaviour
         DialogueLabel.curlyLabel.Say("It's a " + name + ".");
     }
 
+    // Called by ControllerCursor — Y button examines the currently highlighted slot
+    public void ExamineItemController(int index)
+    {
+        if (index < 0 || index >= itemNames.Count || itemNames[index] == null || itemNames[index] == "") return;
+        ExamineItem(index);
+    }
+
     void RefreshSlotHighlights()
     {
         for (int i = 0; i < slots.Count; i++)

@@ -179,6 +179,27 @@ public class SaveManager : MonoBehaviour
         info.text = scene + " | " + era + "\n" + timestamp;
     }
 
+    // Called by ControllerCursor when A is pressed on a slot
+    public void OnSlotClickedController(int slot)
+    {
+        OnSlotClicked(slot);
+    }
+
+    // Called by ControllerCursor to highlight the selected slot
+    public void HighlightSlotController(int index)
+    {
+        Button[] slotButtons = { slotAutoButton, slot1Button, slot2Button, slot3Button };
+        for (int i = 0; i < slotButtons.Length; i++)
+        {
+            if (slotButtons[i] == null) continue;
+            Image img = slotButtons[i].GetComponent<Image>();
+            if (img == null) continue;
+            img.color = (i == index)
+                ? new Color(0f, 0.4f, 0.4f, 1f)  // highlighted — teal
+                : (isDeleteMode ? DeleteHighlight : NormalSlotColor);
+        }
+    }
+
     void ToggleDeleteMode()
     {
         isDeleteMode = !isDeleteMode;

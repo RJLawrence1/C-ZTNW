@@ -140,32 +140,41 @@ public class Interactable : MonoBehaviour, IInteractable
 
         int iLayer = LayerMask.GetMask("Interactable");
 
-        Vector2 hoverPos = Mouse.current.position.ReadValue();
-        RaycastHit2D hoverHit = Physics2D.Raycast(Camera.main.ScreenToWorldPoint(hoverPos), Vector2.zero, Mathf.Infinity, iLayer);
-
-        bool hoveringThis = hoverHit.collider != null && hoverHit.collider.gameObject == gameObject;
-
-        if (hoveringThis)
+        // Only do mouse hover when not using controller — controller handles its own hotspot labels
+        if (!ControllerCursor.usingController)
         {
-            HotspotLabel.instance.Show(itemName, transform.position);
+            Vector2 hoverPos = Mouse.current.position.ReadValue();
+            RaycastHit2D hoverHit = Physics2D.Raycast(Camera.main.ScreenToWorldPoint(hoverPos), Vector2.zero, Mathf.Infinity, iLayer);
 
-            // Show verb-specific cursor on hover
-            if (!cursorIsOver)
+            bool hoveringThis = hoverHit.collider != null && hoverHit.collider.gameObject == gameObject;
+
+            if (hoveringThis)
             {
-                cursorIsOver = true;
+                HotspotLabel.instance.Show(itemName, transform.position);
+
+                if (!cursorIsOver)
+                {
+                    cursorIsOver = true;
+                    if (CursorManager.instance != null)
+                        CursorManager.instance.SetHoverCursor();
+                }
+            }
+            else if (cursorIsOver)
+            {
+                cursorIsOver = false;
                 if (CursorManager.instance != null)
-                    CursorManager.instance.SetHoverCursor();
+                    CursorManager.instance.ResetHoverCursor();
             }
         }
         else if (cursorIsOver)
         {
-            // Cursor left this object — reset
+            // Switched to controller mid-hover — clean up
             cursorIsOver = false;
             if (CursorManager.instance != null)
                 CursorManager.instance.ResetHoverCursor();
         }
 
-        if (Mouse.current.leftButton.wasPressedThisFrame)
+        if (Mouse.current.leftButton.wasPressedThisFrame && !ControllerCursor.usingController)
         {
             Vector2 mousePos = Mouse.current.position.ReadValue();
             RaycastHit2D hit = Physics2D.Raycast(Camera.main.ScreenToWorldPoint(mousePos), Vector2.zero, Mathf.Infinity, iLayer);
